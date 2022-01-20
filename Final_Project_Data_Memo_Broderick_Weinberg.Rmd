@@ -11,7 +11,16 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Overview of Dataset
 
-Fill in
+Planning on using this Dataset
+https://www.kaggle.com/ruchi798/global-environmental-indicators
+
+Environmental datasets, most reviewed at National levels.
+
+Will be obtaining from Kaggle.
+
+Unclear on what subsets of the data will be used.
+
+Some of the csv files do have missing data. Will not be using all datasets.
 
 ## Overview of Research Questions
 
