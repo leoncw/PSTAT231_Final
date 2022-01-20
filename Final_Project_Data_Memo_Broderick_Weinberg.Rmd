@@ -1,0 +1,21 @@
+---
+title: "Final Project Data Memo"
+author: "Callum Weinberg"
+date: "January 19, 2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview of Dataset
+
+Fill in
+
+## Overview of Research Questions
+
+## Proposed Timeline
+
+## Any Questions or Concerns
+
