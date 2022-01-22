@@ -25,3 +25,5 @@ We plan on exploring most metrics available as predictors (so long as they make 
 
 ## Any Questions or Concerns
 
+Given the approach of this project will include considering a relatively large number of predictors, we anticipate a few issues may arise. We will likely need to consider some shrinkage or subset methods for a regression based approach, given $n$ might not be that much larger than $p$. Additionally, we will likely need to consider some missing-data related strategies other than dropping observations, given the variation in which predictors are missing for which countries (most countries will likely be missing from at least one predictor). We don't have any questions at the moment, but appreciate the instructor support.
+
