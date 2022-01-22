@@ -25,6 +25,17 @@ We plan on exploring most metrics available as predictors (so long as they make 
 
 ## Overview of Research Questions
 
+The variable which we are interested in predicting is the renewable electricity production percentage for different countries.
+
+In predicting this variable we are interested in answering a few questions. We are interested in answering which countries are predicted to have highest and lowest renewable electricity production percentages. In achieving accurate predictions, we would like to venture to draw conclusions about where countries should aim their resources in order to raise renewable electricity production as a percentage of their total electricity production. This information would be beneficial because it could provide an indication as to the best way to invest in renewable electricity sources, versus nonrenewable electricity sources, which pose a threat to our climate and precious resources.
+
+Our response variable is renewable electricity production percentage (REPP). In order to describe our response variable, we must first discuss total electricity production, which is defined as gross electricity production. That is, the sum of the electrical energy production by all generating units. Our response variable, renewable electricity production percentage (REPP), is defined as the proportion of total electricity produced that comes from a renewable origin. A renewable origin may be electricity produced from hydro, geothermal, solar, wind, tide, wave, and ocean sources.
+
+These questions may be best answered with a regression approach, since we are predicting a quantitative variable.
+
+From the vast dataset, there are many predictors to consider and initially we plan on including many. Examples of predictors which may be especially useful include: Air and Climate predictors (emissions), Inland Water Resources (Water abstractions), Forest area, and Marine/Coastal Areas. We additionally may consider other metrics from these categories.
+\newline
+
 ## Proposed Timeline
 
 ## Any Questions or Concerns
