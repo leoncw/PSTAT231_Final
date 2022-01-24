@@ -38,6 +38,20 @@ From the vast dataset, there are many predictors to consider and initially we pl
 
 ## Proposed Timeline
 
+We will be dividing up the workload for the project and working in the following manner. We will begin by loading and tidying our data set this week. Callum will spearhead the merging of our datasets.
+
+Once we get our data set loaded and cleaned, we next plan on beginning exploratory data analysis. Hailey will create summary graphs for our outcome variable (distribution) as well as explore and summarize particularly important predictor variables using graphs/plots. We also want to include at least one correlation chart. Callum will summarize our missing data and we will collaborate on finding the best way to handle missing observations (Callum will lead this part given his experience), and create possible maps for our predictions. EDA work will be divided appropriately, and we will each perform written analysis on our respective parts.
+
+For feature extraction, we will meet and make a plan about perspective models. Then, we will each create a number of appropriate models, and review each others models to discuss their viability.
+
+Data splitting is next. Hailey will take charge of initially dividing data into test and training sets and use stratisfied sampling. Together, we will use cross-validation to fold training set.
+
+Next, we will begin model fitting, where Callum and Hailey will each fit at least two model classes. We will next tune models across resamples (at this stage we may examine each other’s models to offer thoughts on tuning). After tuning, together we will choose our optimal model, fitting it to training and test sets. We will then evaluate the performance of our model and write up an analysis.
+
+Laslty, we will both contribute to the executive summary, including key findings which we each made throughout the project. Once we have our project in final stage, we will go back and make sure that we included proper narration to our respective parts throughout the paper (including and introduction and conclusion). The last step is revision, in which we will each go over the project and in its entirety and make final edits anywhere we see fit. Finally, we will properly organize our files, code, and data as required and submit our final project.
+\newline
+
+
 ## Any Questions or Concerns
 
 Given the approach of this project will include considering a relatively large number of predictors, we anticipate a few issues may arise. We will likely need to consider some shrinkage or subset methods for a regression based approach, given $n$ might not be that much larger than $p$. Additionally, we will likely need to consider some missing-data related strategies other than dropping observations, given the variation in which predictors are missing for which countries (most countries will likely be missing from at least one predictor). We don't have any questions at the moment, but appreciate the instructor support.
