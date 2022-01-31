@@ -32,7 +32,7 @@ library(assertr)
 not.missing.p <- function(x) if(is.na(x)) return(FALSE)
 ```
 
-### Air and Climate Data
+# Air and Climate Data
 
 ## Load and Clean Air and Climate Data
 
@@ -162,6 +162,7 @@ dim(crosswalk_air_climate[duplicated(crosswalk_air_climate$Country_ID),])[1] == 
 dim(crosswalk_air_climate[duplicated(crosswalk_air_climate$Country),])[1] == 0
 ```
 
+## Combine Air and Climate
 
 ```{r combine_air_and_climate}
 # Start with the Above Created Crosswalk
@@ -188,3 +189,183 @@ combined_air_climate =
   rename(Country = Country.x)
 ```
 
+# Energy and Minerals
+
+## Load and Clean Energy and Minerals Data
+
+```{r load_energy}
+## Renewable Percentage
+# Current problem is to model 2017 renewable energy
+# so only keeping 2017 variable in this iteration
+
+# Also there are some empty rows and the end of the
+# data set
+renewable_percentage = read.csv("Raw_Data/Energy and Minerals/Renewable elec production percentage.csv")
+
+renewable_percentage = renewable_percentage %>%
+  rename(Country_ID = CountryID,
+         Country = Country.and.area, 
+         renewable_percent_2017 = X2017) %>%
+  select(Country_ID,Country,renewable_percent_2017) %>%
+  slice(1:224) %>%
+  assert(not.missing.p, Country_ID)
+```
+
+
+
+# Other Categories
+
+## Load and Clean Other Categories
+
+```{r load_other}
+## Biodiversity Data/Marine and Terrestrial Protected areas
+# row 1 is world total
+protected_areas_marine_terrestrial = read.csv("Raw_Data/Biodiversity/Terrestrial_Marine protected areas.csv")
+
+protected_areas_marine_terrestrial = 
+  protected_areas_marine_terrestrial %>%
+  rename(Country_ID = CountryID,
+         Country = Country.and.area,
+         protected_areas_marine_terrestrial_latest_year = latest.year.available, 
+         protected_areas_marine_terrestrial = Terrestrial.and.marine.protected.areas....of.total.territorial.area.) %>%
+  slice(2:n()) %>%
+  assert(not.missing.p, Country_ID)
+
+## Marine and Coastal Protected areas
+# first row is world total
+protected_areas_marine_coastal = read.csv("Raw_Data/Marine and Coastal Areas/Marine protected areas.csv")
+
+protected_areas_marine_coastal = 
+  protected_areas_marine_coastal %>%
+  rename(Country_ID = CountryID,
+         Country = Country.and.area,
+         protected_areas_marine_latest_year = latest.year.available, 
+         protected_areas_marine = Marine.protected.areas....of.territorial.waters.) %>%
+  slice(2:n()) %>%
+  assert(not.missing.p, Country_ID)
+
+## Forests Data
+# deforestaion and fire areas not included due to 
+# significant number of missing values
+# row 1 is world total
+forest_areas = read.csv("Raw_Data/Forests/Forest Area.csv")
+
+forest_areas = 
+  forest_areas %>%
+  rename(Country_ID = CountryID,
+         Country = Country.and.Area,
+         forest_area_2015 = Forest.Area..2015..1000.ha., 
+         forest_area_2020 = Forest.Area..2020..1000.ha.,
+         forest_total_land_area_2020 = Total.Land.Area..2020..1000.ha.) %>%
+  select(Country_ID,Country,forest_area_2015,forest_area_2020,forest_total_land_area_2020) %>%
+  slice(2:n()) %>%
+  assert(not.missing.p, Country_ID)
+
+
+## Governance
+governance = read.csv("Raw_Data/Governance/Governance.csv")
+
+governance = governance %>%
+  rename(Country_ID = CountryID,
+         Country = Country.and.area) %>%
+  rename_with(~gsub(".", "_", .x, fixed = TRUE)) %>%
+  assert(not.missing.p, Country_ID)
+```
+
+## Other Crosswalk
+
+```{r crosswalk_other}
+# Append all of the Datasets
+crosswalk_other = rbind.fill(protected_areas_marine_terrestrial,
+                                   protected_areas_marine_coastal,
+                                   forest_areas,
+                                   governance)
+
+# Create the Crosswalk
+crosswalk_other = crosswalk_other %>%
+  select(Country_ID, Country) %>%
+  distinct()
+
+# Check if there are any Duplicates 
+# This would mean that for the air and climate datasets
+# there are either repeated countries, IDs, or that
+# ID is not unique to country between the datasets
+# and Vice versa
+dim(crosswalk_other[duplicated(crosswalk_other$Country_ID),])[1] == 0
+dim(crosswalk_other[duplicated(crosswalk_other$Country),])[1] == 0
+```
+
+## Combine Others
+
+```{r combine_air_and_climate}
+# Start with the Above Created Crosswalk
+# And Merge on Each of the Datasets
+combined_other = 
+  left_join(crosswalk_other,protected_areas_marine_terrestrial, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+combined_other = 
+  left_join(combined_other,protected_areas_marine_coastal, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+combined_other = 
+  left_join(combined_other,forest_areas, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+combined_other = 
+  left_join(combined_other,governance, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+```
+
+
+# Combine Categories
+
+## Overall Crosswalk
+
+```{r combine_categories}
+# Append all of the Combined Datasets
+crosswalk_combined = rbind.fill(renewable_percentage,
+                                combined_air_climate,
+                                combined_other)
+
+# Create the Crosswalk
+crosswalk_combined = crosswalk_combined %>%
+  select(Country_ID, Country) %>%
+  distinct()
+
+# Check if there are any Duplicates 
+# This would mean that for the air and climate datasets
+# there are either repeated countries, IDs, or that
+# ID is not unique to country between the datasets
+# and Vice versa
+dim(crosswalk_combined[duplicated(crosswalk_combined$Country_ID),])[1] == 0
+dim(crosswalk_combined[duplicated(crosswalk_combined$Country),])[1] == 0
+
+```
+
+## Create Combined Dataset
+
+```{r combined_dataset}
+combined_dataset = 
+  left_join(crosswalk_combined,renewable_percentage, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+combined_dataset = 
+  left_join(combined_dataset,combined_air_climate, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+combined_dataset = 
+  left_join(combined_dataset,combined_other, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+```
+
+
+# Output Data
+
+```{r output_data}
+
+save(combined_dataset, file="Intermediate_Data/01_Combined_Raw_Data.Rdata")
+
+```
