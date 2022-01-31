@@ -1,0 +1,190 @@
+---
+title: "Load and Combine CSV Files"
+author: "Callum Weinberg"
+date: "January 30, 2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# This is necessary given the nested directories.
+# Enter your working directory here
+knitr::opts_knit$set(root.dir = "/home/clw/Documents/UCSB/Quarter6/PSTAT 231/Final Project/PSTAT231_Final")
+```
+
+## README
+
+The initial version of this cleaning will just keep the variables that will be considered for the analysis. A future version of this file may fully load all the columns from the data source.
+
+# Libraries
+
+```{r libraries}
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(assertr)
+```
+
+# Functions
+
+```{r functions}
+# From https://cran.r-project.org/web/packages/assertr/vignettes/assertr.html
+not.missing.p <- function(x) if(is.na(x)) return(FALSE)
+```
+
+### Air and Climate Data
+
+## Load and Clean Air and Climate Data
+
+```{r load_air_and_climate}
+## CH_4 Emissions
+CH4_emissions = read.csv("Raw_Data/Air and Climate/CH4_Emissions.csv")
+
+CH4_emissions = CH4_emissions %>%
+  rename(Country_ID = Country.ID,
+         CH4_latest_year = X.28, 
+         CH4 = CH4.emissions..latest.year, 
+         CH4_change_1990 = X..change.since.1990, 
+         CH4_per_capita = CH4.emissions..per.capita...latest.year) %>%
+  select(Country_ID,Country,CH4_latest_year,CH4,CH4_change_1990,CH4_per_capita) %>%
+  slice(2:n()) %>%
+  assert(not.missing.p, Country_ID)
+
+## CO2 Emissions
+CO2_emissions = read.csv("Raw_Data/Air and Climate/CO2_Emissions.csv")
+
+CO2_emissions = CO2_emissions %>%
+  rename(Country_ID = Country.ID,
+         CO2_latest_year = X.28, 
+         CO2 = CO2.emissions..latest.year, 
+         CO2_change_1990 = X..change.since.1990, 
+         CO2_per_capita = CO2.emissions..per.capita...latest.year) %>%
+  select(Country_ID,Country,CO2_latest_year,CO2,CO2_change_1990,CO2_per_capita) %>%
+  slice(2:n()) %>%
+  assert(not.missing.p, Country_ID)
+
+## GHG Emissions
+GHG_emissions = read.csv("Raw_Data/Air and Climate/GHG_Emissions.csv")
+
+GHG_emissions = GHG_emissions %>%
+  rename(Country_ID = Country.ID,
+         GHG_latest_year = X.28, 
+         GHG = GHG.total.without.LULUCF..latest.year, 
+         GHG_change_1990 = X..change.since.1990, 
+         GHG_per_capita = GHG.emissions.per.capita...latest.year) %>%
+  select(Country_ID,Country,GHG_latest_year,GHG,GHG_change_1990,GHG_per_capita) %>%
+  slice(2:n()) %>%
+  assert(not.missing.p, Country_ID)
+
+## GHG Emissions
+GHG_emissions = read.csv("Raw_Data/Air and Climate/GHG_Emissions.csv")
+# GHG_sector_total should be the same as GHG, if not investigate
+
+GHG_emissions = GHG_emissions %>%
+  rename(Country_ID = Country.ID,
+         GHG_latest_year = X.28, 
+         GHG = GHG.total.without.LULUCF..latest.year,
+         GHG_change_1990 = X..change.since.1990, 
+         GHG_per_capita = GHG.emissions.per.capita...latest.year) %>%
+  select(Country_ID,Country,GHG_latest_year,GHG,GHG_change_1990,GHG_per_capita) %>%
+  slice(2:n()) %>%
+  assert(not.missing.p, Country_ID)
+
+## GHG Emissions by Sector
+# Add this in
+# GHG_emissions_by_sector = read.csv("Data/Air and Climate/GHG_Emissions_by_Sector.csv")
+# GHG_sector_total should be the same as GHG, if not investigate
+
+## N2O Emissions
+N2O_emissions = read.csv("Raw_Data/Air and Climate/N2O_Emissions.csv")
+
+N2O_emissions = N2O_emissions %>%
+  rename(Country_ID = Country.ID,
+         N2O_latest_year = X.28, 
+         N2O = N2O.emissions..latest.year, 
+         N2O_change_1990 = X..change.since.1990, 
+         N2O_per_capita = N2O.emissions..per.capita...latest.year) %>%
+  select(Country_ID,Country,N2O_latest_year,N2O,N2O_change_1990,N2O_per_capita) %>%
+  slice(2:n()) %>%
+  assert(not.missing.p, Country_ID)
+
+## NOx Emissions
+# There are some blank lines in this
+# file that need to be skipped
+NOx_emissions = read.csv("Raw_Data/Air and Climate/NOx_Emissions.csv")
+
+NOx_emissions = NOx_emissions %>%
+  rename(Country_ID = Country.ID,
+         NOx_latest_year = X.28, 
+         NOx = NOx.emissions..latest.year, 
+         NOx_change_1990 = X..change.since.1990, 
+         NOx_per_capita = NOx..emissions.per.capita...latest.year) %>%
+  select(Country_ID,Country,NOx_latest_year,NOx,NOx_change_1990,NOx_per_capita) %>%
+  slice(2:173) %>%
+  assert(not.missing.p, Country_ID)
+
+## SO2 Emissions
+SO2_emissions = read.csv("Raw_Data/Air and Climate/SO2_emissions.csv")
+
+SO2_emissions = SO2_emissions %>%
+  rename(Country_ID = Country.ID,
+         SO2_latest_year = X.28, 
+         SO2 = SO2.emissions..latest.year, 
+         SO2_change_1990 = X..change.since.1990, 
+         SO2_per_capita = SO2.emissions.per.capita..latest.year) %>%
+  select(Country_ID,Country,SO2_latest_year,SO2,SO2_change_1990,SO2_per_capita) %>%
+  slice(2:143) %>%
+  assert(not.missing.p, Country_ID)
+```
+
+## Air and Climate Crosswalk
+
+```{r crosswalk_air_and_climate}
+# Append all of the Datasets
+crosswalk_air_climate = rbind.fill(CH4_emissions,
+                                   CO2_emissions,
+                                   GHG_emissions,
+                                   N2O_emissions,
+                                   NOx_emissions,
+                                   SO2_emissions)
+
+# Create the Crosswalk
+crosswalk_air_climate = crosswalk_air_climate %>%
+  select(Country_ID, Country) %>%
+  distinct()
+
+# Check if there are any Duplicates 
+# This would mean that for the air and climate datasets
+# there are either repeated countries, IDs, or that
+# ID is not unique to country between the datasets
+# and Vice versa
+dim(crosswalk_air_climate[duplicated(crosswalk_air_climate$Country_ID),])[1] == 0
+dim(crosswalk_air_climate[duplicated(crosswalk_air_climate$Country),])[1] == 0
+```
+
+
+```{r combine_air_and_climate}
+# Start with the Above Created Crosswalk
+# And Merge on Each of the Datasets
+combined_air_climate = 
+  left_join(crosswalk_air_climate,CH4_emissions, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+combined_air_climate = 
+  left_join(combined_air_climate,CO2_emissions, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+combined_air_climate = 
+  left_join(combined_air_climate,GHG_emissions, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+combined_air_climate = 
+  left_join(combined_air_climate,N2O_emissions, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+combined_air_climate = 
+  left_join(combined_air_climate,NOx_emissions, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+```
+
