@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_knit$set(root.dir = "/home/clw/Documents/UCSB/Quarter6/PSTAT 231/Final Project/PSTAT231_Final")
 ```
 
-## README
+# README
 
 The initial version of this cleaning will just keep the variables that will be considered for the analysis. A future version of this file may fully load all the columns from the data source.
 
@@ -31,6 +31,29 @@ library(assertr)
 # From https://cran.r-project.org/web/packages/assertr/vignettes/assertr.html
 not.missing.p <- function(x) if(is.na(x)) return(FALSE)
 ```
+
+# Manual Crosswalks
+
+```{r load_manual_crosswalks}
+## Energy and Minerals Crosswalk
+energy_minerals_crosswalk_manual = read.csv("Crosswalks/Energy_Minerals_Crosswalk.csv")
+energy_minerals_crosswalk_mineral_manual = read.csv("Crosswalks/Energy_Minerals_Crosswalk_mineral_dataset.csv")
+
+## Land and Agriculture Crosswalks
+land_agriculture_preliminary_manual = read.csv("Crosswalks/land_agricultural_preliminary.csv")
+land_agriculture_final_manual = read.csv("Crosswalks/land_agricultural_final.csv")
+
+## Final Crosswalk for Mapping Categories
+## Includes World Bank Data
+final_crosswalk = read.csv("Crosswalks/02_final_crosswalk.csv")
+final_crosswalk = final_crosswalk %>%
+  rename(Country = Country_Mapping)
+# Get version with only Country and ID
+final_crosswalk_Country_Only = final_crosswalk %>%
+  select(Country, Country_ID_Final)
+```
+
+
 
 # Air and Climate Data
 
@@ -187,7 +210,28 @@ combined_air_climate =
   left_join(combined_air_climate,NOx_emissions, by = "Country_ID") %>%
   select(-Country.y) %>%
   rename(Country = Country.x)
+combined_air_climate = 
+  left_join(combined_air_climate,SO2_emissions, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+
+# Export Data
+save(combined_air_climate, file="Intermediate_Data/001_combined_air_climate.Rdata")
+write.csv(combined_air_climate,"Intermediate_Data/001_combined_air_climate.csv", row.names = FALSE)
+
+# Merge in Final Crosswalk to Get Universal ID
+combined_air_climate_clean = 
+  left_join(final_crosswalk_Country_Only,combined_air_climate, by = "Country") %>%
+  filter(!is.na(Country_ID)) %>%
+  select(-Country, -Country_ID) %>%
+  filter(Country_ID_Final != 999) #Excluded before merging
+
+# Clean Up Environment
+remove(crosswalk_air_climate,combined_air_climate, CH4_emissions, CO2_emissions,
+       GHG_emissions,N2O_emissions, NOx_emissions, SO2_emissions)
 ```
+
+
 
 # Energy and Minerals
 
@@ -206,12 +250,394 @@ renewable_percentage = renewable_percentage %>%
   rename(Country_ID = CountryID,
          Country = Country.and.area, 
          renewable_percent_2017 = X2017) %>%
-  select(Country_ID,Country,renewable_percent_2017) %>%
+  select(Country_ID,renewable_percent_2017) %>%
   slice(1:224) %>%
+  assert(not.missing.p, Country_ID) %>%
+  left_join(energy_minerals_crosswalk_manual, by = "Country_ID")
+
+## Energy Indicators
+# YEAR NOT INDICATED
+energy_indicators = read.csv("Raw_Data/Energy and Minerals/Energy Indicators.csv")
+
+energy_indicators = energy_indicators %>%
+  rename(Country_ID = CountryID,
+         Country = Country.and.area, 
+         energy_supply_petajoules = Energy.supply..petajoules.,
+         energy_supply_per_capita_gigajoules = Energy.supply..per.capita...gigajoules.per.capita.,
+         contribution_renewable_to_electric_production = Conribution.of.renewables.to.electricity.production....) %>%
+  select(Country_ID,energy_supply_petajoules,
+         energy_supply_per_capita_gigajoules, 
+         contribution_renewable_to_electric_production) %>%
+  slice(1:217) %>%
+  assert(not.missing.p, Country_ID) %>%
+  left_join(energy_minerals_crosswalk_manual, by = "Country_ID")
+
+## Energy Intensity
+energy_intensity = read.csv("Raw_Data/Energy and Minerals/Energy intensity measured in terms of primary energy and GDP.csv")
+
+energy_intensity = energy_intensity %>%
+  rename(Country_ID = CountryID,
+         Country = Country.and.area, 
+         energy_intensity_2017 = X2017) %>%
+  select(Country_ID, energy_intensity_2017) %>%
+  assert(not.missing.p, Country_ID) %>%
+  left_join(energy_minerals_crosswalk_manual, by = "Country_ID")
+
+## Energy Supply Per Capita
+energy_supply_per_capita = read.csv("Raw_Data/Energy and Minerals/Energy supply per capita.csv")
+
+energy_supply_per_capita = energy_supply_per_capita %>%
+  rename(Country_ID = CountryID,
+         Country = Country.and.area, 
+         energy_supply_per_capita_2017 = X2017) %>%
+  select(Country_ID,energy_supply_per_capita_2017) %>%
+  slice(1:222) %>%
+  assert(not.missing.p, Country_ID) %>%
+  left_join(energy_minerals_crosswalk_manual, by = "Country_ID")
+
+## Energy Supply
+energy_supply = read.csv("Raw_Data/Energy and Minerals/Energy supply.csv")
+
+energy_supply = energy_supply %>%
+  rename(Country_ID = CountryID,
+         Country = Country.and.area, 
+         energy_supply_2017 = X2017) %>%
+  select(Country_ID,energy_supply_2017) %>%
+  slice(1:222) %>%
+  assert(not.missing.p, Country_ID) %>%
+  left_join(energy_minerals_crosswalk_manual, by = "Country_ID")
+
+## Contribution of Mining to Value Added
+# Only keeping 2017
+# Missing ID: will need to fix this
+mining_percentage = read.csv("Raw_Data/Energy and Minerals/Contribution of mining to value added.csv")
+
+mining_percentage = mining_percentage %>%
+  rename(Country = Country.and.area, 
+         mining_value_2017 = X2017) %>%
+  select(Country,mining_value_2017) %>%
+  assert(not.missing.p, Country) %>%
+  left_join(energy_minerals_crosswalk_mineral_manual, 
+            by = c("Country" = "Country_Corrected")) %>% # Correct Missing ID
+  select(-Country) %>%
+  left_join(energy_minerals_crosswalk_manual, by = "Country_ID")
+```
+
+## Energy and Minerals Crosswalk
+
+```{r crosswalk_air_and_climate}
+# Append all of the Datasets
+crosswalk_energy_minerals = rbind.fill(renewable_percentage,
+                                   energy_indicators,
+                                   energy_intensity,
+                                   energy_supply_per_capita,
+                                   energy_supply, 
+                                   mining_percentage)
+
+# Create the Crosswalk
+crosswalk_energy_minerals = crosswalk_energy_minerals %>%
+  select(Country_ID, Country) %>%
+  distinct()
+
+#write.csv(crosswalk_energy_minerals,"Crosswalks/Base_Energy_Minerals_Crosswalk.csv", row.names = FALSE)
+
+# Check if there are any Duplicates 
+# This would mean that for the energy and minerals datasets
+# there are either repeated countries, IDs, or that
+# ID is not unique to country between the datasets
+# and Vice versa
+dim(crosswalk_energy_minerals[duplicated(crosswalk_energy_minerals$Country_ID),])[1] == 0
+dim(crosswalk_energy_minerals[duplicated(crosswalk_energy_minerals$Country_Corrected),])[1] == 0
+```
+
+## Combine Energy and Minerals
+
+```{r combine_air_and_climate}
+# Start with the Above Created Crosswalk
+# And Merge on Each of the Datasets
+combined_energy_minerals = 
+  left_join(crosswalk_energy_minerals,renewable_percentage, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+combined_energy_minerals = 
+  left_join(combined_energy_minerals,energy_indicators, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+combined_energy_minerals = 
+  left_join(combined_energy_minerals,energy_intensity, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+combined_energy_minerals = 
+  left_join(combined_energy_minerals,energy_supply_per_capita, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+combined_energy_minerals = 
+  left_join(combined_energy_minerals,energy_supply, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+combined_energy_minerals = 
+  left_join(combined_energy_minerals,mining_percentage, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+
+# Export Data
+save(combined_energy_minerals, file="Intermediate_Data/002_combined_energy_minerals.Rdata")
+write.csv(combined_energy_minerals,"Intermediate_Data/002_combined_energy_minerals.csv", row.names = FALSE)
+
+# Merge in Final Crosswalk to Get Universal ID
+combined_energy_minerals_clean = 
+  left_join(final_crosswalk_Country_Only,combined_energy_minerals, by = "Country") %>%
+  filter(!is.na(Country_ID)) %>%
+  select(-Country, -Country_ID) %>%
+  filter(Country_ID_Final != 999) #Excluded before merging
+
+# Clean Up Environment
+remove(crosswalk_energy_minerals,combined_energy_minerals,renewable_percentage, energy_indicators,
+       energy_intensity,energy_supply_per_capita,energy_supply, mining_percentage,energy_minerals_crosswalk_manual, 
+       energy_minerals_crosswalk_mineral_manual)
+```
+
+
+# Land and Agriculture Data
+
+## Load and Clean Land and Agriculture Data
+
+```{r load_land_agriculture}
+## Agricultural Land
+agriculture_land = read.csv("Raw_Data/Land and Agriculture/Agricultural Land.csv")
+
+# not including change in cultural land since 1990
+# missing a good amount. Also not including
+# agricultural land actually irrigated, also 
+# missing a lot
+agriculture_land = agriculture_land %>%
+  rename(Country = Country,
+         agricultural_area_2013 = Agricultural.area.in.2013..km2., 
+         percent_land_agricultural_2013 = X..of.total.land.area.covered.by.agricultural.area.in.2013, 
+         arable_land_2013 = Arable.land.in.2013..km2., 
+         permanent_crops_2013 = Permanent.crops.in.2013..km2.,
+         permanent_meadows_pastures_2013 = Permanent.meadows.and.pastures.in.2013..km2.) %>%
+  select(Country,agricultural_area_2013,percent_land_agricultural_2013,arable_land_2013,
+         permanent_crops_2013,permanent_meadows_pastures_2013) %>%
+  assert(not.missing.p, Country) %>% # ID missing 
+  left_join(land_agriculture_preliminary_manual, by = "Country") %>%
+  assert(not.missing.p, Country_ID) %>%
+  select(-Country) %>%
+  left_join(land_agriculture_final_manual, by = "Country_ID")
+
+
+## Consumption of Fertilizers Per Unit of 
+## Agricultural Land
+consumption_fertilizer = read.csv("Raw_Data/Land and Agriculture/Consumption of fertilizers per unit of agricultural land area.csv")
+
+consumption_fertilizer = consumption_fertilizer %>%
+  rename(Country = Country,
+         nitrogen_consumption = Nitrogen, 
+         phosphate_consumption = Phosphate, 
+         potash_consumption = Potash) %>%
+  select(Country,nitrogen_consumption,phosphate_consumption,potash_consumption) %>%
+  assert(not.missing.p, Country) %>% # ID missing 
+  left_join(land_agriculture_preliminary_manual, by = "Country") %>%
+  assert(not.missing.p, Country_ID) %>%
+  select(-Country) %>%
+  left_join(land_agriculture_final_manual, by = "Country_ID")
+
+## Terrestrial Protected Areas
+# All 2018
+terrestrial_protected_areas = read.csv("Raw_Data/Land and Agriculture/Terrestrial protected areas.csv")
+  
+terrestrial_protected_areas = terrestrial_protected_areas %>%
+  rename(Country_ID = CountryID,
+         Country = Country.and.area,
+         terrestrial_protected_areas = Terrestrial.protected.areas) %>%
+  select(Country_ID,Country,terrestrial_protected_areas) %>%
+  slice(3:n()) %>%
+  assert(not.missing.p, Country_ID) %>%
+  select(-Country) %>%
+  left_join(land_agriculture_final_manual, by = "Country_ID")
+```
+
+## Land and Agricultural Crosswalk
+
+```{r crosswalk_land_agricultural}
+# Append all of the Datasets
+crosswalk_land_agricultural = rbind.fill(agriculture_land,
+                                   consumption_fertilizer,
+                                   terrestrial_protected_areas)
+
+# Create the Crosswalk
+crosswalk_land_agricultural = crosswalk_land_agricultural %>%
+  select(Country_ID, Country) %>%
+  distinct()
+
+# Check if there are any Duplicates 
+# This would mean that for the energy and minerals datasets
+# there are either repeated countries, IDs, or that
+# ID is not unique to country between the datasets
+# and Vice versa
+dim(crosswalk_land_agricultural[duplicated(crosswalk_land_agricultural$Country_ID),])[1] == 0
+dim(crosswalk_land_agricultural[duplicated(crosswalk_land_agricultural$Country_Corrected),])[1] == 0
+```
+
+## Combine Land Agricultural
+
+```{r combine_air_and_climate}
+# Start with the Above Created Crosswalk
+# And Merge on Each of the Datasets
+combined_land_agricultural = 
+  left_join(crosswalk_land_agricultural,agriculture_land, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+combined_land_agricultural = 
+  left_join(combined_land_agricultural,consumption_fertilizer, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+combined_land_agricultural = 
+  left_join(combined_land_agricultural,terrestrial_protected_areas, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+
+# Export Data
+save(combined_land_agricultural, file="Intermediate_Data/003_combined_land_agricultural.Rdata")
+write.csv(combined_land_agricultural,"Intermediate_Data/003_combined_land_agricultural.csv", row.names = FALSE)
+
+# Merge in Final Crosswalk to Get Universal ID
+combined_land_agricultural_clean = 
+  left_join(final_crosswalk_Country_Only,combined_land_agricultural, by = "Country") %>%
+  filter(!is.na(Country_ID)) %>%
+  select(-Country, -Country_ID) %>%
+  filter(Country_ID_Final != 999) #Excluded before merging
+
+# Clean Up Environment
+remove(crosswalk_land_agricultural,combined_land_agricultural,agriculture_land, 
+       consumption_fertilizer,terrestrial_protected_areas, land_agriculture_preliminary_manual,
+       land_agriculture_final_manual)
+```
+
+
+# Natural Disasters
+
+```{r load_natural_disasters}
+## climatological disasters
+climatological_disasters = read.csv("Raw_Data/Natural Disasters/Climatological disasters.csv")
+
+climatological_disasters = climatological_disasters %>%
+  rename(Country_ID = CountryID,
+         Country = Countries.or.areas, 
+         climate_disaster_occurence_2010_2019 = Occurrence.2010.2019, 
+         climate_disaster_deaths_2010_2019 = Total.deaths.2010.2019, 
+         climate_disaster_affected_2010_2019 = Persons.affected.2010.2019) %>%
+  select(Country_ID,Country,climate_disaster_occurence_2010_2019,
+         climate_disaster_deaths_2010_2019,
+         climate_disaster_affected_2010_2019) %>%
+  assert(not.missing.p, Country_ID)
+
+## geophysical disasters
+geophysical_disasters = read.csv("Raw_Data/Natural Disasters/Geophysical disasters.csv")
+
+geophysical_disasters = geophysical_disasters %>%
+  rename(Country_ID = CountryID,
+         Country = Countries.or.areas, 
+         geophysical_disaster_occurence_2010_2019 = Occurrence.2010.2019, 
+         geophysical_disaster_deaths_2010_2019 = Total.deaths.2010.2019, 
+         geophysical_disaster_affected_2010_2019 = Persons.affected.2010.2019) %>%
+  select(Country_ID,Country,geophysical_disaster_occurence_2010_2019,
+         geophysical_disaster_deaths_2010_2019,
+         geophysical_disaster_affected_2010_2019) %>%
+  assert(not.missing.p, Country_ID)
+
+
+## hydrological disasters
+hydrological_disasters = read.csv("Raw_Data/Natural Disasters/Hydrological disasters.csv")
+
+hydrological_disasters = hydrological_disasters %>%
+  rename(Country_ID = CountryID,
+         Country = Countries.or.areas, 
+         hydrological_disaster_occurence_2010_2019 = Occurrence.2010.2019, 
+         hydrological_disaster_deaths_2010_2019 = Total.deaths.2010.2019, 
+         hydrological_disaster_affected_2010_2019 = Persons.affected.2010.2019) %>%
+  select(Country_ID,Country,hydrological_disaster_occurence_2010_2019,
+         hydrological_disaster_deaths_2010_2019,
+         hydrological_disaster_affected_2010_2019) %>%
+  assert(not.missing.p, Country_ID)
+
+
+## meteorological disasters
+meteorological_disasters = read.csv("Raw_Data/Natural Disasters/Meteorological disasters.csv")
+
+meteorological_disasters = meteorological_disasters %>%
+  rename(Country_ID = CountryID,
+         Country = Countries.or.areas, 
+         meteorological_disaster_occurence_2010_2019 = Occurrence.2010.2019, 
+         meteorological_disaster_deaths_2010_2019 = Total.deaths.2010.2019, 
+         meteorological_disaster_affected_2010_2019 = Persons.affected.2010.2019) %>%
+  select(Country_ID,Country,meteorological_disaster_occurence_2010_2019,
+         meteorological_disaster_deaths_2010_2019,
+         meteorological_disaster_affected_2010_2019) %>%
   assert(not.missing.p, Country_ID)
 ```
 
 
+## Natural Disasters Crosswalk
+
+```{r crosswalk_land_agricultural}
+# Append all of the Datasets
+crosswalk_natural_disaster = rbind.fill(climatological_disasters,
+                                   geophysical_disasters,
+                                   hydrological_disasters,
+                                   meteorological_disasters)
+
+# Create the Crosswalk
+crosswalk_natural_disaster = crosswalk_natural_disaster %>%
+  select(Country_ID, Country) %>%
+  distinct()
+
+# Check if there are any Duplicates 
+# This would mean that for the energy and minerals datasets
+# there are either repeated countries, IDs, or that
+# ID is not unique to country between the datasets
+# and Vice versa
+dim(crosswalk_natural_disaster[duplicated(crosswalk_natural_disaster$Country_ID),])[1] == 0
+dim(crosswalk_natural_disaster[duplicated(crosswalk_natural_disaster$Country_Corrected),])[1] == 0
+```
+
+## Combine Natural Disaster
+
+```{r combine_natural_disaster}
+# Start with the Above Created Crosswalk
+# And Merge on Each of the Datasets
+combined_natural_disaster = 
+  left_join(crosswalk_natural_disaster,climatological_disasters, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+combined_natural_disaster = 
+  left_join(combined_natural_disaster,geophysical_disasters, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+combined_natural_disaster = 
+  left_join(combined_natural_disaster,hydrological_disasters, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+combined_natural_disaster = 
+  left_join(combined_natural_disaster,meteorological_disasters, by = "Country_ID") %>%
+  select(-Country.y) %>%
+  rename(Country = Country.x)
+
+# Export Data
+save(combined_natural_disaster, file="Intermediate_Data/004_combined_natural_disaster.Rdata")
+write.csv(combined_natural_disaster,"Intermediate_Data/004_combined_natural_disaster.csv", row.names = FALSE)
+
+# Merge in Final Crosswalk to Get Universal ID
+combined_natural_disaster_clean = 
+  left_join(final_crosswalk_Country_Only,combined_natural_disaster, by = "Country") %>%
+  filter(!is.na(Country_ID)) %>%
+  select(-Country, -Country_ID) %>%
+  filter(Country_ID_Final != 999) #Excluded before merging
+
+# Clean Up Environment
+remove(crosswalk_natural_disaster,combined_natural_disaster,climatological_disasters, 
+       geophysical_disasters,hydrological_disasters, meteorological_disasters)
+```
 
 # Other Categories
 
@@ -316,22 +742,45 @@ combined_other =
   left_join(combined_other,governance, by = "Country_ID") %>%
   select(-Country.y) %>%
   rename(Country = Country.x)
+
+# Export Data
+save(combined_other, file="Intermediate_Data/005_combined_other.Rdata")
+write.csv(combined_other,"Intermediate_Data/005_combined_other.csv", row.names = FALSE)
+
+# Merge in Final Crosswalk to Get Universal ID
+combined_other_clean = 
+  left_join(final_crosswalk_Country_Only,combined_other, by = "Country") %>%
+  filter(!is.na(Country_ID)) %>%
+  select(-Country, -Country_ID) %>%
+  filter(Country_ID_Final != 999) #Excluded before merging
+
+# Clean Up Environment
+remove(crosswalk_other,combined_other,protected_areas_marine_terrestrial, 
+       protected_areas_marine_coastal,forest_areas, governance)
 ```
+
+
+
+
+
+
+
 
 
 # Combine Categories
 
-## Overall Crosswalk
+## Create Combined Dataset
 
-```{r combine_categories}
-# Append all of the Combined Datasets
-crosswalk_combined = rbind.fill(renewable_percentage,
-                                combined_air_climate,
-                                combined_other)
+```{r combined_all}
 
-# Create the Crosswalk
-crosswalk_combined = crosswalk_combined %>%
-  select(Country_ID, Country) %>%
+# Create Clea Final Data and World Bank Dataset
+full_data = final_crosswalk %>%
+  filter(Country_ID_Final != 999) %>%
+  filter(Country_Final != "Swaziland") %>%
+  filter(Country_Final != "Czechia") %>%
+  filter(Country_Final != "St. Helena") %>%
+  filter(Country_Final != "St. Pierre-Miquelon") %>%
+  select(-Country) %>%
   distinct()
 
 # Check if there are any Duplicates 
@@ -339,33 +788,21 @@ crosswalk_combined = crosswalk_combined %>%
 # there are either repeated countries, IDs, or that
 # ID is not unique to country between the datasets
 # and Vice versa
-dim(crosswalk_combined[duplicated(crosswalk_combined$Country_ID),])[1] == 0
-dim(crosswalk_combined[duplicated(crosswalk_combined$Country),])[1] == 0
+dim(full_data[duplicated(full_data$Country_ID_Final),])[1] == 0
+dim(full_data[duplicated(full_data$Country_Final),])[1] == 0
 
-```
-
-## Create Combined Dataset
-
-```{r combined_dataset}
-combined_dataset = 
-  left_join(crosswalk_combined,renewable_percentage, by = "Country_ID") %>%
-  select(-Country.y) %>%
-  rename(Country = Country.x)
-combined_dataset = 
-  left_join(combined_dataset,combined_air_climate, by = "Country_ID") %>%
-  select(-Country.y) %>%
-  rename(Country = Country.x)
-combined_dataset = 
-  left_join(combined_dataset,combined_other, by = "Country_ID") %>%
-  select(-Country.y) %>%
-  rename(Country = Country.x)
+# Create Full Dataset (Excluding 999 Countries)
+full_data = left_join(full_data,combined_air_climate_clean, by = "Country_ID_Final")
+full_data = left_join(full_data,combined_energy_minerals_clean, by = "Country_ID_Final")
+full_data = left_join(full_data,combined_land_agricultural_clean, by = "Country_ID_Final")
+full_data = left_join(full_data,combined_natural_disaster_clean, by = "Country_ID_Final")
+full_data = left_join(full_data,combined_other_clean, by = "Country_ID_Final")
 ```
 
 
 # Output Data
 
 ```{r output_data}
-
-save(combined_dataset, file="Intermediate_Data/01_Combined_Raw_Data.Rdata")
-
+# Save the Data for Use in the Next File
+save(full_data, file="Intermediate_Data/01_full_data.Rdata")
 ```
