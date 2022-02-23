@@ -1,0 +1,52 @@
+---
+title: "03_Missing_Data_Imputation"
+author: "Callum Weinberg"
+date: "February 23, 2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# This is necessary given the nested directories.
+# Enter your working directory here
+knitr::opts_knit$set(root.dir = "/home/clw/Documents/UCSB/Quarter6/PSTAT 231/Final Project/PSTAT231_Final")
+```
+
+# README
+
+Missing data imputation. For now assigning median value. This will not be the final approach, but doing so to move along the analysis process
+
+# Libraries
+
+```{r libraries}
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(assertr)
+library(knitr)
+```
+
+# Load the Data
+
+```{r load_data}
+## Load the Data from the 01 File
+load(file="Intermediate_Data/02_limited_data.Rdata")
+```
+
+# Impute Missing Data
+
+Currently assigning Median value to missing data. This is not a good strategy, particularly for some of these variables (such as the years for international agreements). Working on a better method.
+
+```{r impute_data}
+# Replace missing values with the medians
+model_data = limited_data %>%
+  mutate(across(.cols = everything(), ~ifelse(is.na(.x) == TRUE, median(.x,na.rm = TRUE), .x)))
+# DELETE THIS lm = lm(data = limited_data, renewable_percent_2017 ~ as.matrix(limited_data[,4:35]))
+```
+
+# Output Data
+
+```{r output_data}
+# Save the Data for Use in the Next File
+save(model_data, file="Intermediate_Data/03_model_data.Rdata")
+```
