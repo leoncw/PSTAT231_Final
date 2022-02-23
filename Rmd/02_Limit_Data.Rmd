@@ -1,0 +1,128 @@
+---
+title: "02_Limit_Data.Rmd"
+author: "Callum Weinberg"
+date: "February 22, 2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# This is necessary given the nested directories.
+# Enter your working directory here
+knitr::opts_knit$set(root.dir = "/home/clw/Documents/UCSB/Quarter6/PSTAT 231/Final Project/PSTAT231_Final")
+```
+
+# README
+
+Cleans the data, then limits the data, removing countries that are missing a large portion of predictors (50 chosen initially). Then the predictors considered for the final model are limited to.
+
+# Libraries
+
+```{r libraries}
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(assertr)
+library(knitr)
+```
+
+
+# Load the Data
+
+```{r load_data}
+## Load the Data from the 01 File
+load(file="Intermediate_Data/01_full_data.Rdata")
+
+## Rename Data
+full_data_clean = full_data
+remove(full_data)
+```
+
+# Clean Data
+
+```{r clean_data}
+# Convert ... to NA
+full_data_clean = full_data_clean %>%
+  mutate(across(.cols = everything(), ~ifelse(.x == "...", NA, .x)))
+
+# Remove Note Columns
+full_data_clean = full_data_clean %>%
+  select(-World_Bank_Notes,-Other_Notes)
+
+# Convert Variables to Numeric
+# Everything besides Country and Country ID should be numeric
+#full_data_clean = full_data_clean %>%
+#  mutate(across(.cols = everything(), ~ifelse(is.character(.x) == TRUE, as.numeric(.x), .x)))
+j = ncol(full_data_clean)
+i = c(2:j)
+full_data_clean[ , i] = apply(full_data_clean[ , i], 2, function(x) as.numeric(x))
+
+```
+
+
+# Exclude Missing Percent Renewables
+
+Exclude any observations (countries) that don't have percent renewable, since that is what is being modeled/predicted, and they aren't useful to the analysis
+
+```{r remove_missing_response}
+## Drop Observations that don't have Renewable Energy Percentage for 2019
+# There are 19 Such observations
+full_data_clean = full_data_clean %>%
+  filter(is.na(renewable_percent_2017) == FALSE)
+```
+
+
+# Remove Countries with Significant Number of Missings
+
+Currently using a threshold if the country is missing more than 50 values. This was chosen somewhat arbitrarily, but weighs the importance of retaining data (and not biasing the model by removing countries) with the practical consideration that fitting a model for an observation that is over mostly imputed for its predictors is not particularly useful or intersting and makes modeling more dificult.
+
+```{r remove_sparse_variables}
+# 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
+
+## Get a count of the number of missings, and remove Countries 
+# that have 50 or more missing values. See write up for list of
+# countries
+full_data_row_remove = full_data_clean %>%
+  mutate(row_missings = rowSums(is.na(full_data_clean))) %>%
+  filter(row_missings < 50)
+```
+
+# Remove Variables with Significant Number of Missings
+
+After removing the countries without much data, a similar process is applied to predictors. Similar logic applies. Variables that are mostly missing will be mostly imputed, reducing the value of the process. Per capita variables are not included if the raw total is available (since models will be able to include population). 
+
+NOTE THIS IS TRUE FOR GENERALIZED REGRESSION. MAYBE NOT FOR TREES?
+
+Year variables arenot included in modeling, but are available for data tracking in the 01 data file.
+
+```{r limit_to_variables}
+# Below is a list of the number of missing values per column. 
+# Using this list to determine what variables to keep for the final models
+kable(as.matrix(colSums(is.na(full_data_row_remove))))
+
+# See write up for more information regarding model selection. 
+# Generally, per capita variables are excluded if the raw value
+# is available, given the population variable is present
+
+# Variables with signicant numbers of missings are dropped
+limited_data = full_data_row_remove %>%
+  select(c(Country_Final,Country_ID_Final,renewable_percent_2017,X2017_Population_World_Bank,X2017_Land_Area_km_2,X2017_GDP_US_Dollars_World_Bank,
+           CH4,CO2,GHG,NOx,energy_supply_petajoules,contribution_renewable_to_electric_production,energy_intensity_2017,energy_supply_2017,mining_value_2017,
+           percent_land_agricultural_2013,nitrogen_consumption,phosphate_consumption,potash_consumption,terrestrial_protected_areas,
+           protected_areas_marine_terrestrial,forest_area_2015,Basel_Convention,CITES,Convention_on_Biological_Diversity,Kyoto__Protocol,Montreal_Protocol,
+           Paris_Agreement,Ramsar_Convention,Rotterdam_Convention,Stockholm_Convention,UN_Convention_on_the_Law_of_the_Sea,
+           UN_Convention_to_Combat_Desertification,UN_Framework_Convention_on_Climate_Change,World__Heritage_Convention))
+
+# N2O and SO2 are missing for too many values to be included
+# percent_land_agricultural_2013 is included since agricultural_area_2013 
+# is missing for most values (ideally the latter would be kept since 
+# Square kilometers is already included)
+```
+
+
+# Output Data
+
+```{r output_data}
+# Save the Data for Use in the Next File
+save(limited_data, file="Intermediate_Data/02_limited_data.Rdata")
+```
