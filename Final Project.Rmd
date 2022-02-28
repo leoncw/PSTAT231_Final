@@ -1,8 +1,9 @@
 ---
 title: "Pstat 231 Final Project"
-author: "Hailey Broderick"
+author: "Hailey Broderick and Callum Weinberg"
 date: "2/28/2022"
 output: pdf_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -14,12 +15,13 @@ load("~/Desktop/PSTAT231_Final/03_model_data.Rdata")
 
 * Create Training and Test sets:
 ```{r train/test split}
-# training set
+# training set (80% of original data)
 train = sample(nrow(model_data), .8*(nrow(model_data)))
 x.train = model_data[train, ]
 y.train = model_data[train, ]$renewable_percent_2017
 
-# test set
+# test set (remaining 20% of original data)
 x.test = model_data[-train, ]
 y.test = model_data[-train, ]$renewable_percent_2017
 ```
+
