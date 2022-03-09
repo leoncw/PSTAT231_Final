@@ -57,6 +57,9 @@ j = ncol(full_data_clean)
 i = c(2:j)
 full_data_clean[ , i] = apply(full_data_clean[ , i], 2, function(x) as.numeric(x))
 
+# Convert Renewable Percentage 2017 to an Actual Percentage
+full_data_clean$renewable_percent_2017 = 
+  full_data_clean$renewable_percent_2017/100
 ```
 
 
@@ -118,7 +121,6 @@ limited_data = full_data_row_remove %>%
 # is missing for most values (ideally the latter would be kept since 
 # Square kilometers is already included)
 ```
-
 
 # Output Data
 

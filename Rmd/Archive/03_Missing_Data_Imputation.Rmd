@@ -37,22 +37,38 @@ median_replace = function(x) {
   }
   return(x)
 }
+
+# Test
+y = matrix(c(1,2,3,NA,5,6,7,NA,NA), ncol = 3, byrow = FALSE)
+y
+
+g = median_replace(y)
+g
 ```
 
 # Load the Data
 
 ```{r load_data}
-## Load the Data from the 02 File
+## Load the Data from the 01 File
 load(file="Intermediate_Data/02_limited_data.Rdata")
 ```
 
 # Impute Missing Data
 
+Currently assigning Median value to missing data. This is not a good strategy, particularly for some of these variables (such as the years for international agreements). Working on a better method.
+
+```{r impute_data}
+# Replace missing values with the medians
+#model_data = limited_data %>%
+#  mutate(across(.cols = everything(), ~ifelse(is.na(.x) == TRUE, median(.x,na.rm = TRUE), .x)))
+# DELETE THIS lm = lm(data = limited_data, renewable_percent_2017 ~ as.matrix(limited_data[,4:35]))
+```
+
 The goal here is to predict each missing value using a linear model of all other observations, where any missings in the fit for the model are substituted with the median (but only for the fitting and prediction stage).
 
-```{r impute_data_updated, warning = FALSE}
+```{r impute_data_updated}
 # Count Number of Missings
-# colSums(is.na(limited_data))
+colSums(is.na(limited_data))
 
 # Define Model Data
 model_data = limited_data
@@ -82,14 +98,15 @@ for(i in 7:ncol(limited_data)) {
   # Replace Data With Interpolated Data
   replace_indeces = which(is.na(model_data[,i]))
   model_data[replace_indeces,i] = prediction[replace_indeces]
+  
+  #model_data = model_data %>%
+  #  mutate(Predict_Variable = prediction) %>%
+  #  mutate(.[[i]] = ifelse(is.na(.[[i]]) == TRUE, Predict_Variable, .[[i]]))
 }
-```
 
-Below is some code to plot histograms of the data (the bin width will need to be changed based on the variables)
-to compare the interpolated data to the original data
-```{r}
+
 # Create a Plot to Compare Data Sets before and After
-distr_df = data.frame(Filled = model_data$Ramsar_Convention, Missing = limited_data$Ramsar_Convention) %>% 
+distr_df = data.frame(Filled = model_data$World__Heritage_Convention, Missing = limited_data$World__Heritage_Convention) %>% 
   melt(value.name='y_i')
 
 # Plot
