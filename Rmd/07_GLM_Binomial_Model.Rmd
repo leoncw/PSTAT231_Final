@@ -1,0 +1,84 @@
+---
+title: "07_GLM_Binomial_Model"
+author: "Callum Weinberg"
+date: "March 9, 2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# This is necessary given the nested directories.
+# Enter your working directory here
+knitr::opts_knit$set(root.dir = "/home/clw/Documents/UCSB/Quarter6/PSTAT 231/Final Project/PSTAT231_Final")
+```
+
+```{r libraries}
+library(glmnet)
+library(bamlss)
+```
+
+
+```{r regularized_beta_regression}
+## First, set the seed for reproducibly.
+set.seed(42)
+
+# Beta Regression Values must be strictly between 0 and 1
+y.train = 
+  ifelse(y.train == 0,y.train + .000001,y.train)
+y.train = 
+  ifelse(y.train == 1,y.train - .000001,y.train)
+
+## Model formula.
+## y.train instead of renewable_percent 2017
+f = y.train ~ X2017_Population_World_Bank + X2017_Land_Area_km_2 + X2017_GDP_US_Dollars_World_Bank + 
+  CH4 + CO2 + GHG + NOx + energy_supply_petajoules + energy_intensity_2017 +
+  #contribution_renewable_to_electric_production + highly correlated
+  # energy_supply_2017 + 
+  mining_value_2017 + percent_land_agricultural_2013 + nitrogen_consumption + phosphate_consumption +
+  potash_consumption + terrestrial_protected_areas + protected_areas_marine_terrestrial + forest_area_2015 + Basel_Convention +
+  CITES + Convention_on_Biological_Diversity + Kyoto__Protocol + Montreal_Protocol + Paris_Agreement + Ramsar_Convention + 
+  Rotterdam_Convention + Stockholm_Convention + UN_Convention_on_the_Law_of_the_Sea + UN_Convention_to_Combat_Desertification +
+  UN_Framework_Convention_on_Climate_Change + World__Heritage_Convention
+
+## Estimate model.
+b = bamlss(f, family = "beta", data = cbind(y.train,x.train),
+  n.iter = 12000, burnin = 2000, thin = 10)
+
+
+
+summary(b)
+
+y.pred = predict(b, newdata = x.test, type = "parameter")
+
+y.pred$mu
+
+sum((y.test-y.pred$mu)^2)
+mean(abs(y.test-y.pred$mu))
+
+plot(b, which = "samples")
+plot(b, which = c("hist-resid", "qq-resid"))
+
+
+graph_data = data.frame(observation = c(1:39),
+           prediction = y.pred$mu,
+           Actual = y.test)
+
+ggplot(data = graph_data) + 
+  geom_point(aes(x = observation, y = prediction), color = "red") +
+  geom_point(aes(x = observation, y = Actual), color = "black") +
+  theme_minimal()
+
+b_residuals = residuals(b, type = c("response"))
+
+```
+
+
+```{r}
+set.seed(43)
+g = runif(100000,0,1)
+h = runif(100000,0,1)
+
+mean(abs(g-h))
+
+
+```

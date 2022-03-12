@@ -1,8 +1,12 @@
 ---
-title: "Load and Combine CSV Files"
-author: "Callum Weinberg"
-date: "January 30, 2022"
-output: pdf_document
+title: "PSTAT 231 Final Broderick-Weinberg"
+author: "Hailey Broderick and Callum Weinberg"
+date: "March 11, 2022"
+output:
+  html_document:
+    code_folding: show
+  html_notebook:
+    code_folding: show
 ---
 
 ```{r setup, include=FALSE}
@@ -12,17 +16,33 @@ knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_knit$set(root.dir = "/home/clw/Documents/UCSB/Quarter6/PSTAT 231/Final Project/PSTAT231_Final")
 ```
 
-# README
 
-The initial version of this cleaning will just keep the variables that will be considered for the analysis. A future version of this file may fully load all the columns from the data source.
+# Executive Summary
+
+# Introduction
+
+[Make reference early to the github page where this is hosted]
+
+## Background
+
+## Data
+
+[DISCUSSION OF WHICH FOLDERS, CSVS, and VARIABLES are kept]
+
+[CITE Kaggle and world bank]
+
+## Purpose and Methods
 
 # Libraries
 
-```{r libraries}
+```{r libraries, message=FALSE}
+library(knitr)
 library(plyr)
 library(dplyr)
 library(tidyr)
 library(assertr)
+library(ggplot2)
+library(reshape2)
 ```
 
 # Functions
@@ -30,11 +50,28 @@ library(assertr)
 ```{r functions}
 # From https://cran.r-project.org/web/packages/assertr/vignettes/assertr.html
 not.missing.p <- function(x) if(is.na(x)) return(FALSE)
+
+
+# Define Median Replacement function (for a matrix)
+# Used for data interpolation
+median_replace = function(x) {
+  for(i in 1:ncol(x)) {
+    # Note: this will break if an entire column is missing values
+    x[which(is.na(x[,i])),i] = median(x[,i],na.rm=TRUE)
+  }
+  return(x)
+}
 ```
 
-# Manual Crosswalks
+# Data Cleaning
 
-```{r load_manual_crosswalks}
+## Manual Crosswalks
+
+As mentioned above, within each folder from the Kaggle dataset, the differnt CSV files sometimes had the countries indexed to different values. In other words, there was not a unique identifier between the different CSV files for the Energy and Mineral folder and the Land and Agrigulture folder. In order to combine (merge) these datasets, manual "crosswalks" had to be compiled, with a new identifier variable generated. These crosswalk files are available in the "Crosswalks" folder in the both the submission (note this applies to the submission for PSTAT 231) and the hosted github page (see introduction).
+
+Additionally, there is a "final crosswalk" which maps the different subfolders (after the CSV from each sub folder has been combined) together is loaded.
+
+```{r load_manual_crosswalks, class.source = 'fold-hide', echo = TRUE, results='hide'}
 ## Energy and Minerals Crosswalk
 energy_minerals_crosswalk_manual = read.csv("Crosswalks/Energy_Minerals_Crosswalk.csv")
 energy_minerals_crosswalk_mineral_manual = read.csv("Crosswalks/Energy_Minerals_Crosswalk_mineral_dataset.csv")
@@ -53,12 +90,15 @@ final_crosswalk_Country_Only = final_crosswalk %>%
   select(Country, Country_ID_Final)
 ```
 
+## Loading and Combing CSVs from Subfolders
 
-# Air and Climate Data
+The CSVs from each subfolder are loaded and cleaned. Cleaning in this case refers to keeping variables of interest, renaming variables, dropping empty rows, and checking that Country and Country ID are unique. For the folders that do have a unique country identifier for all CSVs in the folder, a crosswalk is generated in R and the CSVs are merged using that. Versions of the merged data are saved to the "intermediate" folder - this was done mainly to create the "final crosswalk" and is not strictly necessary if this code is being rerun.
 
-## Load and Clean Air and Climate Data
+The world bank data variables are included in the final crosswalk: they were manually entered into the CSV.
 
-```{r load_air_and_climate}
+Air and Climate Code:
+
+```{r air_and_climate, class.source = 'fold-hide', echo = TRUE, results='hide'}
 ## CH_4 Emissions
 CH4_emissions = read.csv("Raw_Data/Air and Climate/CH4_Emissions.csv")
 
@@ -157,11 +197,8 @@ SO2_emissions = SO2_emissions %>%
   select(Country_ID,Country,SO2_latest_year,SO2,SO2_change_1990,SO2_per_capita) %>%
   slice(2:143) %>%
   assert(not.missing.p, Country_ID)
-```
 
-## Air and Climate Crosswalk
 
-```{r crosswalk_air_and_climate}
 # Append all of the Datasets
 crosswalk_air_climate = rbind.fill(CH4_emissions,
                                    CO2_emissions,
@@ -182,11 +219,8 @@ crosswalk_air_climate = crosswalk_air_climate %>%
 # and Vice versa
 dim(crosswalk_air_climate[duplicated(crosswalk_air_climate$Country_ID),])[1] == 0
 dim(crosswalk_air_climate[duplicated(crosswalk_air_climate$Country),])[1] == 0
-```
 
-## Combine Air and Climate
-
-```{r combine_air_and_climate}
+# COmbine the datasets
 # Start with the Above Created Crosswalk
 # And Merge on Each of the Datasets
 combined_air_climate = 
@@ -230,13 +264,9 @@ remove(crosswalk_air_climate,combined_air_climate, CH4_emissions, CO2_emissions,
        GHG_emissions,N2O_emissions, NOx_emissions, SO2_emissions)
 ```
 
+Energy and Minerals Code: 
 
-
-# Energy and Minerals
-
-## Load and Clean Energy and Minerals Data
-
-```{r load_energy}
+```{r energy_and_minerals, class.source = 'fold-hide', echo = TRUE, results='hide'}
 ## Renewable Percentage
 # Current problem is to model 2017 renewable energy
 # so only keeping 2017 variable in this iteration
@@ -320,11 +350,7 @@ mining_percentage = mining_percentage %>%
             by = c("Country" = "Country_Corrected")) %>% # Correct Missing ID
   select(-Country) %>%
   left_join(energy_minerals_crosswalk_manual, by = "Country_ID")
-```
 
-## Energy and Minerals Crosswalk
-
-```{r crosswalk_air_and_climate}
 # Append all of the Datasets
 crosswalk_energy_minerals = rbind.fill(renewable_percentage,
                                    energy_indicators,
@@ -347,11 +373,8 @@ crosswalk_energy_minerals = crosswalk_energy_minerals %>%
 # and Vice versa
 dim(crosswalk_energy_minerals[duplicated(crosswalk_energy_minerals$Country_ID),])[1] == 0
 dim(crosswalk_energy_minerals[duplicated(crosswalk_energy_minerals$Country_Corrected),])[1] == 0
-```
 
-## Combine Energy and Minerals
-
-```{r combine_air_and_climate}
+# Combine the CSVs
 # Start with the Above Created Crosswalk
 # And Merge on Each of the Datasets
 combined_energy_minerals = 
@@ -397,11 +420,9 @@ remove(crosswalk_energy_minerals,combined_energy_minerals,renewable_percentage, 
 ```
 
 
-# Land and Agriculture Data
+Land and Agriculture Code
 
-## Load and Clean Land and Agriculture Data
-
-```{r load_land_agriculture}
+```{r land_and_agriculture, class.source = 'fold-hide', echo = TRUE, results='hide'}
 ## Agricultural Land
 agriculture_land = read.csv("Raw_Data/Land and Agriculture/Agricultural Land.csv")
 
@@ -454,11 +475,7 @@ terrestrial_protected_areas = terrestrial_protected_areas %>%
   assert(not.missing.p, Country_ID) %>%
   select(-Country) %>%
   left_join(land_agriculture_final_manual, by = "Country_ID")
-```
 
-## Land and Agricultural Crosswalk
-
-```{r crosswalk_land_agricultural}
 # Append all of the Datasets
 crosswalk_land_agricultural = rbind.fill(agriculture_land,
                                    consumption_fertilizer,
@@ -476,11 +493,8 @@ crosswalk_land_agricultural = crosswalk_land_agricultural %>%
 # and Vice versa
 dim(crosswalk_land_agricultural[duplicated(crosswalk_land_agricultural$Country_ID),])[1] == 0
 dim(crosswalk_land_agricultural[duplicated(crosswalk_land_agricultural$Country_Corrected),])[1] == 0
-```
 
-## Combine Land Agricultural
-
-```{r combine_air_and_climate}
+# Combine the CSVs
 # Start with the Above Created Crosswalk
 # And Merge on Each of the Datasets
 combined_land_agricultural = 
@@ -513,10 +527,9 @@ remove(crosswalk_land_agricultural,combined_land_agricultural,agriculture_land,
        land_agriculture_final_manual)
 ```
 
+Natural Disaster Code
 
-# Natural Disasters
-
-```{r load_natural_disasters}
+```{r natural_disaster, class.source = 'fold-hide', echo = TRUE, results='hide'}
 ## climatological disasters
 climatological_disasters = read.csv("Raw_Data/Natural Disasters/Climatological disasters.csv")
 
@@ -574,12 +587,7 @@ meteorological_disasters = meteorological_disasters %>%
          meteorological_disaster_deaths_2010_2019,
          meteorological_disaster_affected_2010_2019) %>%
   assert(not.missing.p, Country_ID)
-```
 
-
-## Natural Disasters Crosswalk
-
-```{r crosswalk_land_agricultural}
 # Append all of the Datasets
 crosswalk_natural_disaster = rbind.fill(climatological_disasters,
                                    geophysical_disasters,
@@ -598,11 +606,8 @@ crosswalk_natural_disaster = crosswalk_natural_disaster %>%
 # and Vice versa
 dim(crosswalk_natural_disaster[duplicated(crosswalk_natural_disaster$Country_ID),])[1] == 0
 dim(crosswalk_natural_disaster[duplicated(crosswalk_natural_disaster$Country_Corrected),])[1] == 0
-```
 
-## Combine Natural Disaster
-
-```{r combine_natural_disaster}
+# Combine CSVs
 # Start with the Above Created Crosswalk
 # And Merge on Each of the Datasets
 combined_natural_disaster = 
@@ -638,11 +643,9 @@ remove(crosswalk_natural_disaster,combined_natural_disaster,climatological_disas
        geophysical_disasters,hydrological_disasters, meteorological_disasters)
 ```
 
-# Other Categories
+Other Categories Code:
 
-## Load and Clean Other Categories
-
-```{r load_other}
+```{r other_categories, class.source = 'fold-hide', echo = TRUE, results='hide'}
 ## Biodiversity Data/Marine and Terrestrial Protected areas
 # row 1 is world total
 protected_areas_marine_terrestrial = read.csv("Raw_Data/Biodiversity/Terrestrial_Marine protected areas.csv")
@@ -695,11 +698,7 @@ governance = governance %>%
          Country = Country.and.area) %>%
   rename_with(~gsub(".", "_", .x, fixed = TRUE)) %>%
   assert(not.missing.p, Country_ID)
-```
 
-## Other Crosswalk
-
-```{r crosswalk_other}
 # Append all of the Datasets
 crosswalk_other = rbind.fill(protected_areas_marine_terrestrial,
                                    protected_areas_marine_coastal,
@@ -718,11 +717,8 @@ crosswalk_other = crosswalk_other %>%
 # and Vice versa
 dim(crosswalk_other[duplicated(crosswalk_other$Country_ID),])[1] == 0
 dim(crosswalk_other[duplicated(crosswalk_other$Country),])[1] == 0
-```
 
-## Combine Others
-
-```{r combine_air_and_climate}
+# Combine CSVs
 # Start with the Above Created Crosswalk
 # And Merge on Each of the Datasets
 combined_other = 
@@ -758,19 +754,9 @@ remove(crosswalk_other,combined_other,protected_areas_marine_terrestrial,
        protected_areas_marine_coastal,forest_areas, governance)
 ```
 
+Combine all Categories Code:
 
-
-
-
-
-
-
-
-# Combine Categories
-
-## Create Combined Dataset
-
-```{r combined_all}
+```{r combined_all, class.source = 'fold-hide', echo = TRUE, results='hide'}
 
 # Create Clea Final Data and World Bank Dataset
 full_data = final_crosswalk %>%
@@ -796,12 +782,213 @@ full_data = left_join(full_data,combined_energy_minerals_clean, by = "Country_ID
 full_data = left_join(full_data,combined_land_agricultural_clean, by = "Country_ID_Final")
 full_data = left_join(full_data,combined_natural_disaster_clean, by = "Country_ID_Final")
 full_data = left_join(full_data,combined_other_clean, by = "Country_ID_Final")
-```
 
-
-# Output Data
-
-```{r output_data}
 # Save the Data for Use in the Next File
 save(full_data, file="Intermediate_Data/01_full_data.Rdata")
+remove(combined_air_climate_clean,combined_energy_minerals_clean,combined_land_agricultural_clean,
+       combined_natural_disaster_clean,combined_other_clean,final_crosswalk,final_crosswalk_Country_Only)
 ```
+
+
+## Limit the Data
+
+The following code limits the observations and variables based on a number of practical criteria. First, any missing values are replaced with NAs. Non-numeric data is converted to numeric (except for country names). Variables that were originally included from the CSVs as "Notes" are excluded. Additionally, the renewable percentage for 2017 is converted to a percentage (the data is a percentage from the source, not a decimal). 
+
+[NOTE NUMBER OF ROWS AND COLUMNS DROPPED]
+
+```{r additional_data_cleaning, class.source = 'fold-hide', echo = TRUE, results='hide'}
+## Load the Data from the 01 File
+load(file="Intermediate_Data/01_full_data.Rdata")
+
+## Rename Data
+full_data_clean = full_data
+remove(full_data)
+
+# Convert ... to NA
+full_data_clean = full_data_clean %>%
+  mutate(across(.cols = everything(), ~ifelse(.x == "...", NA, .x)))
+
+# Remove Note Columns
+full_data_clean = full_data_clean %>%
+  select(-World_Bank_Notes,-Other_Notes)
+
+# Convert Variables to Numeric
+# Everything besides Country and Country ID should be numeric
+#full_data_clean = full_data_clean %>%
+#  mutate(across(.cols = everything(), ~ifelse(is.character(.x) == TRUE, as.numeric(.x), .x)))
+j = ncol(full_data_clean)
+i = c(2:j)
+full_data_clean[ , i] = apply(full_data_clean[ , i], 2, function(x) as.numeric(x))
+
+# Convert Renewable Percentage 2017 to an Actual Percentage
+full_data_clean$renewable_percent_2017 = 
+  full_data_clean$renewable_percent_2017/100
+```
+
+Any observations (countries) that don't have percent renewable for 2017 are excluded, since that is what predicted, and there is no reasonable way to interpolate the "solution." 19 countries do not have 2017 renewable percentage.
+
+```{r limit_missing_renewables, echo = TRUE, results='hide'}
+## Drop Observations that don't have Renewable Energy Percentage for 2019
+# There are 19 Such observations
+full_data_clean = full_data_clean %>%
+  filter(is.na(renewable_percent_2017) == FALSE)
+```
+
+
+Some of the variables and countries are missing a lot of values: more than is reasonable to interpolate. The selected threshold is if the country is missing more than 50 values. This was chosen after reviewing the dataset, and weighs the importance of retaining data (and not biasing the model too much by removing countries) with the practical consideration that fitting a model for an observation that is over mostly interpolated for its predictors is not particularly useful or intersting and makes modeling more dificult.
+
+```{r remove_sparse_observations}
+## Get a count of the number of missings, and remove Countries 
+# that have 50 or more missing values. See write up for list of
+# countries
+full_data_row_remove = full_data_clean %>%
+  mutate(row_missings = rowSums(is.na(full_data_clean))) %>%
+  filter(row_missings < 50)
+```
+
+After removing the observations (countries) without much data, a similar process is applied to columns (predictors). Similar logic applies as above. Variables that are mostly missing will be mostly imputed, reducing the value of the process. 
+
+Per capita variables are not included when the raw total is available (since models will be able to include population). Year variables are not included in modeling, but are available for data tracking in "01_full_data.Rdata". Variables are removed "manually" in this step by inspecting the list of variables and number of missings
+
+```{r limit_to_variables}
+# Below is a list of the number of missing values per column. 
+# Using this list to determine what variables to keep for the final models
+# Uncomment the below code for a table of the columns 
+# kable(as.matrix(colSums(is.na(full_data_row_remove))))
+
+# See write up for more information regarding model selection. 
+# Generally, per capita variables are excluded if the raw value
+# is available, given the population variable is present
+
+# N2O and SO2 are missing for too many values to be included
+# percent_land_agricultural_2013 is included since agricultural_area_2013 
+# is missing for most values (ideally the latter would be kept since 
+# Square kilometers is already included)
+
+# Variables with signicant numbers of missings are dropped
+limited_data = full_data_row_remove %>%
+  select(c(Country_Final,Country_ID_Final,renewable_percent_2017,X2017_Population_World_Bank,X2017_Land_Area_km_2,X2017_GDP_US_Dollars_World_Bank,
+           CH4,CO2,GHG,NOx,energy_supply_petajoules,contribution_renewable_to_electric_production,energy_intensity_2017,energy_supply_2017,mining_value_2017,
+           percent_land_agricultural_2013,nitrogen_consumption,phosphate_consumption,potash_consumption,terrestrial_protected_areas,
+           protected_areas_marine_terrestrial,forest_area_2015,Basel_Convention,CITES,Convention_on_Biological_Diversity,Kyoto__Protocol,Montreal_Protocol,
+           Paris_Agreement,Ramsar_Convention,Rotterdam_Convention,Stockholm_Convention,UN_Convention_on_the_Law_of_the_Sea,
+           UN_Convention_to_Combat_Desertification,UN_Framework_Convention_on_Climate_Change,World__Heritage_Convention))
+
+# Save the Data for Use in the Next File
+save(limited_data, file="Intermediate_Data/02_limited_data.Rdata")
+# Clean Environment
+remove(full_data_clean,full_data_row_remove,i,j)
+```
+
+
+# Interpolating Missing Data
+
+[Discussion of this section. Reference textbook section that talks about interpolation]
+
+The goal is to predict each missing value using a linear model of all other observations, where any missings in the fit for the model are substituted with the median (but only for the fitting and prediction stage).
+
+Additionally, contribution_renewable_to_electric_production was removed at this step. It was discovered while modeling the variable was basically the same as  rewable_percentage_2017, and likely is a slightly different version of the same information.
+
+```{r data_interpolation, warning = FALSE}
+## Load the Data from the 02 File
+load(file="Intermediate_Data/02_limited_data.Rdata")
+
+# Highly Correlated, remove from data
+# contribution_renewable_to_electric_production
+limited_data = limited_data[,-12]
+
+# Count Number of Missings
+# Uncomment code to determine number of missings
+# colSums(is.na(limited_data))
+
+
+# Define Model Data
+model_data = limited_data
+
+# Loop Over Each Variable Not in 
+for(i in 7:ncol(limited_data)) {
+
+  # Get Vector of Predictors (Column Position in limited_data)
+  predictors = c(7:34)
+  predictors = predictors[predictors != i]
+
+  # Fit the Linear Model on All Precitors (excluding the)
+  # variable that is being interpolated
+  # Median Replace Function defined in functions section
+  fit = 
+    lm(data = limited_data, 
+       as.matrix(limited_data[,i]) ~ as.matrix(median_replace(limited_data[,predictors])))
+  
+  # Predict
+  prediction = predict(fit,as.data.frame(median_replace(limited_data[,predictors])))
+  
+  # No Predictions should be less than 0
+  # This is based on the variables included, and
+  # may change if more variables are included
+  negative_indeces = which(prediction < 0)
+  prediction[negative_indeces] = 0
+  
+  # Replace Data With Interpolated Data
+  replace_indeces = which(is.na(model_data[,i]))
+  model_data[replace_indeces,i] = prediction[replace_indeces]
+}
+
+# Save the Data for Use in the Next File
+save(model_data, file="Intermediate_Data/03_model_data.Rdata")
+# Clean Environment
+remove(fit,i,negative_indeces,
+       prediction,predictors,replace_indeces)
+```
+
+The interpolation process was found to produce values that replaced the missing values in a reasonable manner. All of the variables were checked to determine none of the interpolated values were outliers compared to the emperical distribution of the observed values for each variable. A histogram of "Ramsar Convention Year" is shown below.
+
+```{r}
+# Create a Plot to Compare Data Sets before and After
+distr_df = data.frame(Filled = model_data$Ramsar_Convention, 
+                      Missing = limited_data$Ramsar_Convention) %>% 
+  melt(value.name='y_i')
+
+# Plot
+ggplot(distr_df, aes(x = y_i, fill = variable)) +
+  geom_histogram(position = "identity",binwidth = 2, alpha = .4) +
+  labs(x = "y_i", y = "Frequency", 
+       title = "Comparison") +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 5)) +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 12))
+```
+
+This graph illustrates what occurs after interpolating the missing values in the Ramsar Convention variable. For the missing values, there year is being predicted. The interpolated values are mostly towards the center of the distribution, with some weight towards the higher end (later year) of the distribution.  If a country has not signed the convention, it arguably makes sense they would be interpolated to sign later (since signing later implies less enthusiasm for the convention, as does signing later).
+
+# Exploratory Data Analysis
+
+[Fill In]
+
+
+# Training and Test Data Set
+
+[Include discussion of training and Test Data Set]
+
+```{r train_test_split}
+## Load the Data from the 02 File
+load(file="Intermediate_Data/03_model_data.Rdata")
+# Set Seed for Reproducibility
+set.seed(42)
+
+# training set 80% of original data
+train = sample(nrow(model_data), .8*(nrow(model_data)))
+x.train = model_data[train, ]
+y.train = model_data[train, ]$renewable_percent_2017
+# test set remaining 20% of original data
+x.test = model_data[-train, ]
+y.test = model_data[-train, ]$renewable_percent_2017
+```
+
+
+# Model 1: Regularized Linear Model
+
+[Fill In]
+
+
+# Model 2: Regularized Beta Regression Model

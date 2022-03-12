@@ -25,6 +25,7 @@ library(tidyr)
 library(assertr)
 library(knitr)
 library(ggplot2)
+library(reshape2)
 ```
 
 # Functions
@@ -46,6 +47,14 @@ median_replace = function(x) {
 load(file="Intermediate_Data/02_limited_data.Rdata")
 ```
 
+# Remove contribution_renewable_to_electric_production
+
+```{r}
+# Highly Correlated, remove from data
+limited_data = limited_data[,-12]
+
+```
+
 # Impute Missing Data
 
 The goal here is to predict each missing value using a linear model of all other observations, where any missings in the fit for the model are substituted with the median (but only for the fitting and prediction stage).
@@ -61,7 +70,7 @@ model_data = limited_data
 for(i in 7:ncol(limited_data)) {
 
   # Get Vector of Predictors (Column Position in limited_data)
-  predictors = c(7:35)
+  predictors = c(7:34)
   predictors = predictors[predictors != i]
 
   # Fit the Linear Model on All Precitors (excluding the)
@@ -89,12 +98,12 @@ Below is some code to plot histograms of the data (the bin width will need to be
 to compare the interpolated data to the original data
 ```{r}
 # Create a Plot to Compare Data Sets before and After
-distr_df = data.frame(Filled = model_data$Ramsar_Convention, Missing = limited_data$Ramsar_Convention) %>% 
+distr_df = data.frame(Filled = model_data$percent_land_agricultural_2013, Missing = limited_data$percent_land_agricultural_2013) %>% 
   melt(value.name='y_i')
 
 # Plot
 ggplot(distr_df, aes(x = y_i, fill = variable)) +
-  geom_histogram(position = "identity",binwidth = 1, alpha = .4) +
+  geom_histogram(position = "identity",binwidth = 2, alpha = .4) +
   labs(x = "y_i", y = "Frequency", 
        title = "Comparison") +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 5)) +
