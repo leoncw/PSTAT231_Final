@@ -15,17 +15,25 @@ knitr::opts_chunk$set(echo = TRUE)
 ** Initial Data Split:
 
 ```{r train/test split}
+<<<<<<< HEAD
 load("~/Desktop/PSTAT231_Final/03_model_data.Rdata")
 View(model_data)
 
 set.seed(1)
 
 # training set (80% of original data)
+=======
+# training set 80% of original data
+>>>>>>> fa89e23f701c1b21f755af1bba1eeec64881aca8
 train = sample(nrow(model_data), .8*(nrow(model_data)))
 x.train = model_data[train, ]
 y.train = model_data[train, ]$renewable_percent_2017
 
+<<<<<<< HEAD
 # test set (remaining 20% of original data)
+=======
+# test set remaining 20% of original data
+>>>>>>> fa89e23f701c1b21f755af1bba1eeec64881aca8
 x.test = model_data[-train, ]
 y.test = model_data[-train, ]$renewable_percent_2017
 ```

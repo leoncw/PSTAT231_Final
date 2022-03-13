@@ -1,0 +1,142 @@
+---
+title: "Linear_Regression"
+author: "Hailey Broderick"
+date: "March 11, 2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libs}
+library(ISLR)
+library(glmnet)
+library(dplyr)
+library(tidyr)
+```
+
+```{r load_data}
+load("~/Desktop/PSTAT231_Final/Intermediate_Data/03_model_data.Rdata")
+```
+
+#### Ridge Regression
+
+First, we fit a ridge regression model to the training set to predict renewable energy percentage for 2017.
+```{r ridge_model}
+
+# create model matrix with renewable energy percentage as response
+
+# remove Country_Final since its a char var, and Country_ID_Final as it is a way of identification, not a number with meaning
+
+dat <- model.matrix(renewable_percent_2017 ~ . -Country_Final -Country_ID_Final, model_data)
+
+# training set
+set.seed(42)
+train_ = sample(nrow(dat), .8*(nrow(dat)))
+x_train = dat[train_ridge, ]
+# y.train
+
+# test set remaining 20% of original data
+x_test = dat[-train_ridge, ]
+# y.test
+
+# Fit ridge regression model to training set to predict renewable energy percentage
+lambda.list.ridge = 1000 * exp(seq(0, log(1e-5), length = 100))
+ridge.mod <- glmnet(x_train, y.train, alpha=0, lambda = lambda.list.ridge)
+
+```
+
+We then preform 5-fold cross-validation to choose the optimal value of tuning parameter lambda for the ridge regression model.
+```{r optimal_lambda}
+set.seed(42)
+
+# 5-fold CV
+cv.out.ridge = cv.glmnet(x_ridge.train, y.train, alpha=0, folds=5)
+plot(cv.out.ridge)
+abline(v = log(cv.out.ridge$lambda.min), col="green4", lwd=3, lty=2)
+
+# optimal lambda
+bestlam.r = cv.out.ridge$lambda.min
+bestlam.r
+```
+
+According to 5-fold CV, the optimal value of tuning parameter lambda for our ridge regression model is `r bestlam.r`.
+
+Ridge regression coefficient estimates corresponding to the optimal lambda value from 5-fold CV are the following:
+
+```{r ridge_coeff}
+ridge.coeff = predict(ridge.mod, type="coefficients", s=bestlam.r)
+ridge.coeff
+```
+There are 33 coefficient estimates for our ridge regression model, some of these coefficient estimates appear to be very close to zero.
+
+We now compute the training MSE and test MSE for our ridge regression model with optimal lambda:
+```{r ridge_MSE}
+
+ridge.train.pred = predict(ridge.mod, s=bestlam.r, newx=x_ridge.train)
+ridge.train.MSE = mean((ridge.train.pred - y.train)^2)
+
+ridge.test.pred = predict(ridge.mod, s=bestlam.r, newx=x_ridge.test)
+ridge.test.MSE = mean((ridge.train.pred - y.test)^2)
+
+```
+
+Our ridge regression model based on the coefficient estimates produced by our optimal lambda choice result in training MSE `r ridge.train.MSE`, and test MSE `r ridge.test.MSE`. The test MSE is higher than the training MSE, although both are relatively close to zero.
+
+#### Lasso Model
+
+We will now fit a lasso model to the training set to predict renewable energy percentage for 2017:
+```{r lasso_model}
+set.seed(42)
+lambda.list.lasso = 2 * exp(seq(0, log(1e-4), length=100))
+lasso.mod <- glmnet(x_train, y.train, alpha=1, lambda=lambda.list.lasso)
+plot(lasso.mod, xvar="lambda", label=TRUE)
+```
+
+Now we preform 10-fold CV to choose optimal value of tuning parameter lambda:
+```{r lasso_lambda}
+set.seed(42)
+cv.out.lasso = cv.glmnet(x_train, y.train, alpha=1, folds=10)
+plot(cv.out.lasso)
+abline(v = log(cv.out.lasso$lambda.min), col="green4", lwd=3, lty=2)
+
+#optimal lambda
+bestlam.l = cv.out.lasso$lambda.min
+```
+The optimal lambda value selected by 10-fold CV for the lasso model is `r bestlam.l`.
+
+Lasso coefficient estimates corresponding to the optimal lambda value from 10-fold CV are the following:
+
+```{r lasso_coeff}
+lasso.coeff = predict(lasso.mod, type="coefficients", s=bestlam.l)
+lasso.coeff
+```
+
+Based on the coefficient estimates for the lasso model selected by cross-validation, we see that 17 variables out of 33 were set to zero. The lasso model is more sparse compared to the ridge regression model, this could be advantageous in our prediction and analysis.
+
+We now compute the training MSE and test MSE for our ridge regression model with optimal lambda:
+```{r lasso_MSE}
+
+lasso.train.pred = predict(lasso.mod, s=bestlam.r, newx=x_train)
+lasso.train.MSE = mean((lasso.train.pred - y.train)^2)
+lasso.train.MSE
+
+lasso.test.pred = predict(lasso.mod, s=bestlam.r, newx=x_test)
+lasso.test.MSE = mean((lasso.train.pred - y.test)^2)
+lasso.test.MSE
+
+```
+
+Our lasso model based on the coefficient estimates produced by our optimal lambda choice resulted in training MSE `r lasso.train.MSE`, and test MSE `r lasso.test.MSE`. The test MSE is relatively lower than the training MSE for our lasso model. 
+
+Compared to our ridge models training MSE (`r ridge.train.MSE`) and test MSE (`r ridge.test.MSE`), we make the following conclusions. 
+The lasso model has a higher training MSE, indicating that our ridge model is better fit to the training data.
+The lasso model has a lower test MSE, this means that our lasso model performs slighlty better on the test data in this case.
+
+Since the lasso model uses significantly variables, and has a lower test MSE compared to the ridge model, it could be advantageous to use the lasso model in this setting.
+
+
+We will now check the residuals for normality.
+
+
