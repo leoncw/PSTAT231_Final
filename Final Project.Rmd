@@ -8,13 +8,18 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-load("~/Desktop/PSTAT231_Final/03_model_data.Rdata")
 ```
 
 
 
-* Create Training and Test sets:
+** Initial Data Split:
+
 ```{r train/test split}
+load("~/Desktop/PSTAT231_Final/03_model_data.Rdata")
+View(model_data)
+
+set.seed(1)
+
 # training set (80% of original data)
 train = sample(nrow(model_data), .8*(nrow(model_data)))
 x.train = model_data[train, ]
@@ -24,4 +29,5 @@ y.train = model_data[train, ]$renewable_percent_2017
 x.test = model_data[-train, ]
 y.test = model_data[-train, ]$renewable_percent_2017
 ```
+
 
