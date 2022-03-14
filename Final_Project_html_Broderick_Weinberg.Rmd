@@ -3,10 +3,11 @@ title: "PSTAT 231 Final Broderick-Weinberg"
 author: "Hailey Broderick and Callum Weinberg"
 date: "March 11, 2022"
 output:
-  html_document:
-    code_folding: show
   html_notebook:
     code_folding: show
+  html_document:
+    code_folding: show
+bibliography: works_cited.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -21,15 +22,47 @@ knitr::opts_knit$set(root.dir = "/home/clw/Documents/UCSB/Quarter6/PSTAT 231/Fin
 
 # Introduction
 
-[Make reference early to the github page where this is hosted]
+This report has been completed by Hailey Broderick and Callum Weinberg for PSTAT 131/231 in the Winter quarter of 2022 at the University of Santa Barbara. For course credit, the report has been submitted to Gauchospace, along with the structured folder which contains the raw data, additional markdown files (the necessary code is available below unless otherwise stated, but these may show some extra work), a codebook/data dictionary, data crosswalks, intermediate data files, a works cited document (called "works_cited.bib"), and the RMd file that creates this HTML file. If accessing this project via online interface, the materials can be found here: https://github.com/leoncw/PSTAT231_Final. The web hosted version of this HTML document can be found HERE (INSERT THIS).
+
+The primary purpose of this project and the course final assignment was to take a dataset and fit models to predict values of a variable. Specifically, the prediction is perfomed on a known variable (i.e. this is a supervised learning project) and a test data set is used to evaluate the performance of the models. Performing inferential statistics on the models was not the primary purpose of this project, but is discussed at times in the report.
+
+The structure of the report is as follows:
+
+* Executive Summary
+* Introduction
+    + Background
+    + Data: Global Environmental Indicators
+    + Purpose and Methods
+* Coding Requirements
+    + Libraries
+    + Functions
+* Data Cleaning
+    + Manual Crosswalks
+    + Loading and Combining Datasets
+    + Data Limitation
+    + Data Interpolation
+* Analysis and Prediction
+    + Exploratory Data Analysis
+    + Training and Test Data
+    + Model 1: Regularized Linear Model
+    + Model 2: Regularized Generalized Linear Model (Beta Regression)
+    + Model 3: Principal Component Analysis and Regression
+    + Model 4: Random Forest Model
+    + Model 5: Boosted Tree Model
+* Results
+* Conclusion
+    + Summary of Report Results
+    + Limitations and Future work
 
 ## Background
 
-The United Nations Statistics Division defines renewable energy production as the following:
+The United Nations Statistics Division defines renewable energy production as the following: [@Shea2014]
 
 "Renewable electricity production  refers to the proportion of total electricity produced that comes from a renewable origin. Electricity production refers to gross electricity production, which is the sum of the electrical energy production by all the generating units/installations concerned (including pumped storage) measured at the output terminals of the main generators. This includes the consumption by station auxiliaries and any losses in the transformers that are considered integral parts of the station. Renewable electricity production was calculated as the sum of electricity produced from hydro, geothermal, solar, wind, tide, wave and ocean sources. All electricity production from combustible fuels is considered non-renewable; therefore electricity produced from burning biomass or renewable waste is not included as renewable electricity in this table. However, this has been observed to be a relatively negligible proportion of electricity production in most cases." CITE "Renewable elec production percentage.xlsx""
 
-## Data
+## Data: Global Environmental Indicators
+
+
 
 [DISCUSSION OF WHICH FOLDERS, CSVS, and VARIABLES are kept]
 
@@ -37,7 +70,9 @@ The United Nations Statistics Division defines renewable energy production as th
 
 ## Purpose and Methods
 
-# Libraries
+# Coding Requirments
+
+The following libraries are needed to run the code throughout this report. They should be installed on a machine using the "install.packages()" function in R before loading.
 
 ```{r libraries, message=FALSE}
 library(knitr)
@@ -134,7 +169,7 @@ The world bank data variables are included in the final crosswalk: they were man
 
 Air and Climate Code:
 
-```{r air_and_climate, class.source = 'fold-hide', echo = TRUE, results='hide'}
+```{r air_and_climate, class.source = 'fold-hide', echo = TRUE, results='hide', message = FALSE}
 ## CH_4 Emissions
 CH4_emissions = read.csv("Raw_Data/Air and Climate/CH4_Emissions.csv")
 
