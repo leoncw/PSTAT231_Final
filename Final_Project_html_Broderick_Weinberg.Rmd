@@ -25,6 +25,10 @@ knitr::opts_knit$set(root.dir = "/home/clw/Documents/UCSB/Quarter6/PSTAT 231/Fin
 
 ## Background
 
+The United Nations Statistics Division defines renewable energy production as the following:
+
+"Renewable electricity production  refers to the proportion of total electricity produced that comes from a renewable origin. Electricity production refers to gross electricity production, which is the sum of the electrical energy production by all the generating units/installations concerned (including pumped storage) measured at the output terminals of the main generators. This includes the consumption by station auxiliaries and any losses in the transformers that are considered integral parts of the station. Renewable electricity production was calculated as the sum of electricity produced from hydro, geothermal, solar, wind, tide, wave and ocean sources. All electricity production from combustible fuels is considered non-renewable; therefore electricity produced from burning biomass or renewable waste is not included as renewable electricity in this table. However, this has been observed to be a relatively negligible proportion of electricity production in most cases." CITE "Renewable elec production percentage.xlsx""
+
 ## Data
 
 [DISCUSSION OF WHICH FOLDERS, CSVS, and VARIABLES are kept]
@@ -900,8 +904,8 @@ Per capita variables are not included when the raw total is available (since mod
 # Variables with signicant numbers of missings are dropped
 limited_data = full_data_row_remove %>%
   select(c(Country_Final,Country_ID_Final,renewable_percent_2017,X2017_Population_World_Bank,X2017_Land_Area_km_2,X2017_GDP_US_Dollars_World_Bank,
-           CH4,CO2,GHG,NOx,energy_supply_petajoules,contribution_renewable_to_electric_production,energy_intensity_2017,energy_supply_2017,mining_value_2017,
-           percent_land_agricultural_2013,nitrogen_consumption,phosphate_consumption,potash_consumption,terrestrial_protected_areas,
+           CH4,CO2,GHG,NOx,energy_supply_petajoules,contribution_renewable_to_electric_production,energy_intensity_2017,energy_supply_2017,
+           mining_value_2017, percent_land_agricultural_2013,nitrogen_consumption,phosphate_consumption,potash_consumption,terrestrial_protected_areas,
            protected_areas_marine_terrestrial,forest_area_2015,Basel_Convention,CITES,Convention_on_Biological_Diversity,Kyoto__Protocol,Montreal_Protocol,
            Paris_Agreement,Ramsar_Convention,Rotterdam_Convention,Stockholm_Convention,UN_Convention_on_the_Law_of_the_Sea,
            UN_Convention_to_Combat_Desertification,UN_Framework_Convention_on_Climate_Change,World__Heritage_Convention))
@@ -912,6 +916,7 @@ save(limited_data, file="Intermediate_Data/02_limited_data.Rdata")
 remove(full_data_clean,full_data_row_remove,i,j)
 ```
 
+Note that after starting the modeling process, it was discovered that energy_supply_2017 and energy_supply_petajoules contained identical data from two different sources. energy_supply_2017 was not included in the models, but appears in the data cleaning process above.
 
 # Interpolating Missing Data
 

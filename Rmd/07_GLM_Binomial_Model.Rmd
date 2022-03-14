@@ -115,7 +115,6 @@ beat_regression_model = y.train ~ X2017_Population_World_Bank + X2017_Land_Area_
   CITES + Convention_on_Biological_Diversity + Kyoto__Protocol + Montreal_Protocol + Paris_Agreement + Ramsar_Convention + 
   Rotterdam_Convention + Stockholm_Convention + UN_Convention_on_the_Law_of_the_Sea + UN_Convention_to_Combat_Desertification +
   UN_Framework_Convention_on_Climate_Change + World__Heritage_Convention
-  # + energy_supply_2017
 
 ## Estimate model.
 ## The data is input in matrix form

@@ -16,6 +16,13 @@ knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_knit$set(root.dir = "/home/clw/Documents/UCSB/Quarter6/PSTAT 231/Final Project/PSTAT231_Final")
 ```
 
+# library
+
+```{r}
+library(gbm)
+
+
+```
 
 # Load the Data
 
@@ -37,3 +44,106 @@ y.train = model_data[train, ]$renewable_percent_2017
 x.test = model_data[-train, ]
 y.test = model_data[-train, ]$renewable_percent_2017
 ```
+
+# 
+
+```{r boosted_model_definition}
+## Model formula.
+## y.train instead of renewable_percent 2017
+boost_tree_model = y.train ~ X2017_Population_World_Bank + X2017_Land_Area_km_2 + X2017_GDP_US_Dollars_World_Bank + 
+  CH4 + CO2 + GHG + NOx + energy_supply_petajoules + energy_intensity_2017 +
+  mining_value_2017 + percent_land_agricultural_2013 + nitrogen_consumption + phosphate_consumption +
+  potash_consumption + terrestrial_protected_areas + protected_areas_marine_terrestrial + forest_area_2015 + Basel_Convention +
+  CITES + Convention_on_Biological_Diversity + Kyoto__Protocol + Montreal_Protocol + Paris_Agreement + Ramsar_Convention + 
+  Rotterdam_Convention + Stockholm_Convention + UN_Convention_on_the_Law_of_the_Sea + UN_Convention_to_Combat_Desertification +
+  UN_Framework_Convention_on_Climate_Change + World__Heritage_Convention
+```
+
+```{r boosted_model_optimization}
+lambda = seq(.0005,.01,by=.0005)
+depth = c(1,2,3,4,5)
+cv_error_vector = matrix(NA,ncol=length(depth),nrow=length(lambda), 
+                     dimnames = list(lambda,depth))
+i = 1
+j = 1
+
+for(i in 1:length(depth)) {
+  for(j in 1:length(lambda)) {
+    
+    boost_model_optim = gbm(boost_tree_model, data=cbind(y.train,x.train),
+                      cv.folds = 10, train.fraction = 1,
+                      distribution="gaussian", n.trees=500, interaction.depth=i,
+                      shrinkage = lambda[j])
+    #cv_error_vector[j,i] = mean(boost_model_optim$cv.error)
+    cv_error_vector[j,i] = boost_model_optim$cv.error[750]
+  }
+}
+
+# stores indexes of max value
+min = which(cv_error_vector == min(cv_error_vector), arr.ind=TRUE)   
+print(paste("Maximum value: ",cv_error_vector[min]))
+print(min)
+
+plot(lambda,rmse_vector)
+
+
+
+set.seed(42)
+boost_model = gbm(boost_tree_model, data=cbind(y.train,x.train),
+                    cv.folds = 10,
+                    distribution="gaussian", n.trees=750, interaction.depth=1,
+                    shrinkage = .0065)
+
+summary(boost_model)
+
+# Prediction
+boost_tree_pred = predict(boost_model, newdata = x.test, n.trees=750)
+
+# Calculate Mean Squared Error and Mean Absolute Error
+boost_tree_rmse = sqrt(mean((y.test-boost_tree_pred)^2))
+boost_tree_mae = mean(abs(y.test-boost_tree_pred))
+
+# Calculate Bias
+boost_tree_fit = predict(boost_model, newdata = x.train, n.trees=500)
+boost_tree_bias = mean(boost_tree_fit - y.train)
+
+
+# Output
+mean(boost_model$cv.error)
+paste0("Boosted Tree RMSE: ",boost_tree_rmse)
+paste0("Boosted Tree MAE: ",boost_tree_mae)
+paste0("Boosted Tree Bias: ",boost_tree_bias)
+
+```
+
+```{r boost_tree_prediction_graph}
+# Create Data Frame with Countries, Predicted Values
+# And Actual Values
+boost_predict_graph_data = data.frame(observation = c(1:39),
+           prediction = boost_tree_pred,
+           actual = y.test,
+           Country = x.test$Country_Final)
+
+# Specifiy minimum and maxium in each case for plotting 
+# the line between points
+boost_predict_graph_data = boost_predict_graph_data %>%
+  mutate(min_value_col = pmin(prediction,actual)) %>%
+  mutate(max_value_col = pmax(prediction,actual)) %>%
+  mutate(Abs_Diff = abs(actual-prediction))
+
+# Plot the Predictions vs. Actual with difference lines and labels
+ggplot(data = boost_predict_graph_data, aes(x = observation, label = Country)) + 
+  geom_point(aes(y = prediction, color = 'Predicted')) +
+  geom_point(aes(y = actual, color='Actual')) +
+  geom_linerange(aes(ymin = min_value_col, ymax = max_value_col), 
+                col = "blue", linetype = "dashed", alpha = .5) +
+  geom_text(aes(y = actual), size = 2, vjust = -.5) +
+  labs(title = "Test Dataset Results for Boosted Tree Model\n500 Trees",
+       x="Country",y="Renewable Energy 2017 (%)") + 
+  scale_color_manual(name='Renewable % 2017',
+                     breaks=c('Actual', 'Predicted'),
+                     values=c('Actual'='black', 'Predicted'='red')) +
+  theme(legend.title=element_text(size=20), legend.text=element_text(size=14)) +
+  theme_minimal()
+```
+
