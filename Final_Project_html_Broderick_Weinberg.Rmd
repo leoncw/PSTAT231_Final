@@ -43,15 +43,25 @@ library(tidyr)
 library(assertr)
 library(ggplot2)
 library(reshape2)
+library(bamlss)
+library(cowplot)
+library(glmnet)
 ```
 
 # Functions
 
-```{r functions}
+Below are a series of functions (not from libraries) used in different places throughout the report. They are written by the authors unless otherwise specified.
+
+The below function checks for missing values in a data frame or matrix.
+```{r function_missing, class.source = 'fold-hide', echo = TRUE, results='hide'}
 # From https://cran.r-project.org/web/packages/assertr/vignettes/assertr.html
-not.missing.p <- function(x) if(is.na(x)) return(FALSE)
+not.missing.p = function(x){
+  if(is.na(x)) return(FALSE)
+}
+```
 
-
+The below function replaces missing values in a matrix with the median of the column.
+```{r function_median_replacement, class.source = 'fold-hide', echo = TRUE, results='hide'}
 # Define Median Replacement function (for a matrix)
 # Used for data interpolation
 median_replace = function(x) {
@@ -60,6 +70,28 @@ median_replace = function(x) {
     x[which(is.na(x[,i])),i] = median(x[,i],na.rm=TRUE)
   }
   return(x)
+}
+```
+
+The below function creates a quantile-quantile plot using ggplo2 library.
+```{r function_ggplot_qq, class.source = 'fold-hide', echo = TRUE, results='hide'}
+#Function for QQ Plot in GGPLOT
+# Source: https://stackoverflow.com/questions/4357031/qqnorm-and-qqline-in-ggplot2
+qqplot_residuals <- function (vec) # argument: vector of numbers
+{
+  # following four lines from base R's qqline()
+  y <- quantile(vec[!is.na(vec)], c(0.25, 0.75))
+  x <- qnorm(c(0.25, 0.75))
+  slope <- diff(y)/diff(x)
+  int <- y[1L] - slope * x[1L]
+
+  d <- data.frame(resids = vec)
+
+  ggplot(d, aes(sample = resids)) + 
+    stat_qq(color = "blue", alpha = .2) + 
+    geom_abline(slope = slope, intercept = int) + 
+    theme(plot.title = element_text(hjust = 0.5)) + 
+    theme_minimal()
 }
 ```
 
@@ -109,7 +141,7 @@ CH4_emissions = CH4_emissions %>%
          CH4_change_1990 = X..change.since.1990, 
          CH4_per_capita = CH4.emissions..per.capita...latest.year) %>%
   select(Country_ID,Country,CH4_latest_year,CH4,CH4_change_1990,CH4_per_capita) %>%
-  slice(2:n()) %>%
+  slice(2:190) %>%
   assert(not.missing.p, Country_ID)
 
 ## CO2 Emissions
@@ -122,7 +154,7 @@ CO2_emissions = CO2_emissions %>%
          CO2_change_1990 = X..change.since.1990, 
          CO2_per_capita = CO2.emissions..per.capita...latest.year) %>%
   select(Country_ID,Country,CO2_latest_year,CO2,CO2_change_1990,CO2_per_capita) %>%
-  slice(2:n()) %>%
+  slice(2:191) %>%
   assert(not.missing.p, Country_ID)
 
 ## GHG Emissions
@@ -135,7 +167,7 @@ GHG_emissions = GHG_emissions %>%
          GHG_change_1990 = X..change.since.1990, 
          GHG_per_capita = GHG.emissions.per.capita...latest.year) %>%
   select(Country_ID,Country,GHG_latest_year,GHG,GHG_change_1990,GHG_per_capita) %>%
-  slice(2:n()) %>%
+  slice(2:192) %>%
   assert(not.missing.p, Country_ID)
 
 ## GHG Emissions
@@ -149,7 +181,7 @@ GHG_emissions = GHG_emissions %>%
          GHG_change_1990 = X..change.since.1990, 
          GHG_per_capita = GHG.emissions.per.capita...latest.year) %>%
   select(Country_ID,Country,GHG_latest_year,GHG,GHG_change_1990,GHG_per_capita) %>%
-  slice(2:n()) %>%
+  slice(2:192) %>%
   assert(not.missing.p, Country_ID)
 
 ## GHG Emissions by Sector
@@ -167,7 +199,7 @@ N2O_emissions = N2O_emissions %>%
          N2O_change_1990 = X..change.since.1990, 
          N2O_per_capita = N2O.emissions..per.capita...latest.year) %>%
   select(Country_ID,Country,N2O_latest_year,N2O,N2O_change_1990,N2O_per_capita) %>%
-  slice(2:n()) %>%
+  slice(2:189) %>%
   assert(not.missing.p, Country_ID)
 
 ## NOx Emissions
@@ -471,7 +503,7 @@ terrestrial_protected_areas = terrestrial_protected_areas %>%
          Country = Country.and.area,
          terrestrial_protected_areas = Terrestrial.protected.areas) %>%
   select(Country_ID,Country,terrestrial_protected_areas) %>%
-  slice(3:n()) %>%
+  slice(3:213) %>%
   assert(not.missing.p, Country_ID) %>%
   select(-Country) %>%
   left_join(land_agriculture_final_manual, by = "Country_ID")
@@ -656,7 +688,7 @@ protected_areas_marine_terrestrial =
          Country = Country.and.area,
          protected_areas_marine_terrestrial_latest_year = latest.year.available, 
          protected_areas_marine_terrestrial = Terrestrial.and.marine.protected.areas....of.total.territorial.area.) %>%
-  slice(2:n()) %>%
+  slice(2:211) %>%
   assert(not.missing.p, Country_ID)
 
 ## Marine and Coastal Protected areas
@@ -669,7 +701,7 @@ protected_areas_marine_coastal =
          Country = Country.and.area,
          protected_areas_marine_latest_year = latest.year.available, 
          protected_areas_marine = Marine.protected.areas....of.territorial.waters.) %>%
-  slice(2:n()) %>%
+  slice(2:217) %>%
   assert(not.missing.p, Country_ID)
 
 ## Forests Data
@@ -686,7 +718,7 @@ forest_areas =
          forest_area_2020 = Forest.Area..2020..1000.ha.,
          forest_total_land_area_2020 = Total.Land.Area..2020..1000.ha.) %>%
   select(Country_ID,Country,forest_area_2015,forest_area_2020,forest_total_land_area_2020) %>%
-  slice(2:n()) %>%
+  slice(2:237) %>%
   assert(not.missing.p, Country_ID)
 
 
@@ -992,3 +1024,189 @@ y.test = model_data[-train, ]$renewable_percent_2017
 
 
 # Model 2: Regularized Beta Regression Model
+
+## Beta Regression Justification
+
+When fitting a linear model for prediction (or interpretation), the "linear model" (often referred to as "ordinary linear regression") is often considered the simplest and first choice for a continuous response. However, such model is not alwyas appropriate. The linear model estimates the response directly as a linear combination of the $\mathbf{\beta}$ matrix and $\mathbf{X}$ matrices, with an error matrix as well. This is of the form:
+
+$$ \mathbf{Y} = \mathbf{X}\mathbf{\beta} + \mathbf{\epsilon}$$
+
+where $\mathbf{Y}$ and $\mathbf{\epsilon}$ are $n\times 1$ matrix, $\mathbf{X}$ is a $n\times p$ matrix, and $\mathbf{\beta}$ is a $p\times 1$ matrix. The $\beta$ coefficients are fit using the data with least squares estimates, and the residuals can be analyzed for normality. Such a model clearly assumes additive error. Additionally, it is generally desirable for the errors to be normally distributed (and therefore this can be reffered to as a Gaussian model) for inference purposes, although it is not strictly necessary for estimating the coefficients.
+
+Practically, issues with the additive error term become apparent when we consider what constraints we may want on $\mathbf{Y}$. For renewable energy percentages in 2017, we clearly want a model that predicts a percentage, i.e. values between 0 and 1. The simple linear model does not guarentee this: coefficients could be estimated for values less than 0 or greater than 1. Therefore it is appropriate classes of models from the more "general" set of "generalized linear models." The genearlized linear model allows for the $\mathbf{X}\mathbf{\beta}$ matrix (called the systematic component - this portion must be linear in the $\beta's$) to be related to the response via a link function, and incorporates the error into a "random" component. 
+
+The choice of generalized linear model (GLM) depends on what values the response can take on. Logistic regression (technically bernoulli regression) is a form of GLM that applies for binary responses, and uses the logit link function. In this problem, the response is continous. When applying linear models to proportions, it must be determined whether the underlying values are counts or an actual proportion. If they are counts, then binomial regression (bernoulli regression bu $n$ does not have to equal 1) or poisson regression are usually appropriate starting places. In this problem it is a bit unclear whether the values are actually counts divided by a total, or actually proportions. Generally energy is thought of as a continupus value, and not a discrete count. Therefore, the less common beta regression model is likely the most appropriate GLM here [CITE https://rcompanion.org/handbook/J_02.html]. 
+
+Beta regression assumes the response variable follows a beta distribution.^[the probability density function is $f(y;\mu,\phi) = \frac{\Gamma(\phi)}{\Gamma(\mu\phi)\gamma((1-\mu)\phi)}y^{\mu\phi-1}(1-y)^{(1-\mu)\phi-1}$] It also requires the response variable to be between 0 and 1, but not exactly 0 or 1. This is a problem for this dataset, as a few renewable percentages are 0 or 1. In order to make use of the model in spite of this, a small ammount of bias is introduced by setting values from the training set that are 0 equal to 0.000001 and values that are 1 equal to 0.999999. The model for a beta regression is as follows:
+
+$$g(\mu_i) = \mathbf{X\beta}$$
+
+where the mean percentage, $\mu$ accounts for the randomness and is modeled as a function of the systematic component, $\mathbf{X\beta}$. $g(.)$ is the link function. CITE[https://cran.r-project.org/web/packages/betareg/vignettes/betareg.pdf]. Different link functions are possible, but the default method for beta regression is typically the logit function, $g(\mu) = log(\frac{\mu}{1-\mu})$. This results in the model 
+
+$$log\bigg(\frac{\mu_i}{1-\mu_i}\bigg) = \mathbf{X\beta}$$
+
+This looks similar logistic (bernoulli) regression. However the beta regression model incorporates a second parameter as well; the precision $\phi$ sometimes referred to as the dispersion $\phi^{-1}$. The precision can be constant or modeled. CITE[https://cran.r-project.org/web/packages/betareg/vignettes/betareg.pdf]. In the package used in this project it is fit using a logit link as well and is modeled to be approximately 1, see below. 
+
+There is a computation problem related to fitting this model in R. Fitting this model is generally done using the \textif{betareg} package. However as outlined in the purpose and methods section, this report seeks to fit sparse models using some form of regularization, since there are approximately 30 predictors. The \textif{betareg} does not have a regularization option, and the \textif{glmnet} package does not have a beta distribution option.^[Writing a new package that does this was considered outside the scope of this project] Of existing packages, the \textif{bamlss} was deemed to provide a modeling technique most appropriate given the goals of the project.[CITE https://arxiv.org/pdf/1909.11784.pdf]
+
+Information of the \textif{bamlss} package can be found here CITE[https://arxiv.org/pdf/1909.11784.pdf] and here http://www.bamlss.org/. \textif{bamlss} stands for "Bayesian additive models for location, scale and shape." CITE[https://arxiv.org/pdf/1909.11784.pdf] The package appears very powerful and capable of bayesian generalized additive models. For the purposes of this report, only a generalized linear model is needed. Instead of maximum likelihood estimation to estimate the parameters, a bayesian approach is implemented, with prior distributions assigned to the $\beta's$.CITE[https://arxiv.org/pdf/1909.11784.pdf page 12] The package also automatically implements a lasso-type penalty, inducing regularization and setting some of the coefficients to 0, thus creating a sparse model. CITE[https://arxiv.org/pdf/1909.11784.pdf page 9].
+
+Note that the package uses BIC (Bayesian Information Criterion) to select the optimal model. This is different than the other methods in this report, which rely on cross validation. To the best of the authors's knowledge, a simple ti implement cross-validation approach is not available for the \textif{bamlss} package.
+
+
+```{r regularized_beta_regression, class.source = 'fold-show', echo = TRUE, results='show'}
+## First, set the seed for reproducibly.
+set.seed(42)
+
+# Beta Regression Values must be strictly between 0 and 1
+y.train = ifelse(y.train == 0,y.train + .000001,y.train)
+y.train = ifelse(y.train == 1,y.train - .000001,y.train)
+
+## Model formula.
+## y.train instead of renewable_percent 2017
+beat_regression_model = y.train ~ X2017_Population_World_Bank + X2017_Land_Area_km_2 + X2017_GDP_US_Dollars_World_Bank + 
+  CH4 + CO2 + GHG + NOx + energy_supply_petajoules + energy_intensity_2017 +
+  mining_value_2017 + percent_land_agricultural_2013 + nitrogen_consumption + phosphate_consumption +
+  potash_consumption + terrestrial_protected_areas + protected_areas_marine_terrestrial + forest_area_2015 + Basel_Convention +
+  CITES + Convention_on_Biological_Diversity + Kyoto__Protocol + Montreal_Protocol + Paris_Agreement + Ramsar_Convention + 
+  Rotterdam_Convention + Stockholm_Convention + UN_Convention_on_the_Law_of_the_Sea + UN_Convention_to_Combat_Desertification +
+  UN_Framework_Convention_on_Climate_Change + World__Heritage_Convention
+  # + energy_supply_2017
+
+## Estimate model.
+## The data is input in matrix form
+beta_model = bamlss(beat_regression_model, family = "beta", 
+                    data = cbind(y.train,x.train), 
+                    optimizer = lasso, criterion = "BIC", 
+                    n.iter = 12000, burnin = 2000, thin = 10)
+
+## Summary of the model
+summary(beta_model)
+```
+
+The model is fit above. There are two important notes here. First, the energy_supply_2017 variable appears to cause some issue in fitting the model and is excluded. Secondly, since the bamlss function takes a bayesian approach, the $\beta's$ are modeled with posterior distributions. This involves sampling the posterior distribution using mote carlo estimation. The "n.iter", "burnin", and "thin" options relate to the sampling and the selected values were defaults suggested in a Vignette on the bamlss wepage.[https://bayesr.r-forge.r-project.org/articles/glm.html]
+
+The above model summary indicates a few important pieces of information. First, it is staed that $\mu$ and the variance were fit with the logit link function. The variance parameter ended up being 1. Samples from the posterior distribution of each $\beta$ coefficient are available. Note that if they 95\% posterior credible interval for each parameter contains 0, the parameter coefficeint is set to 0. 
+
+The world bank demographic variables, the emissions, and the energy supply are all set to 0 due to regularization. The value for the paris agreement $\beta$ is largest in absolute value. $e^{\beta_{Paris Agreement}} = 1.1096$, which can be interpreted as a one year increase in a country signing the paris agreement results in a 11/% decrease in the ratio of renewable energy versus not renewable energy for the country (it is a change in the ratio since the logit link models odds, not percentages). Intuitively, this seems reasonable. Countries that signed the Paris Agreement later would like,ly be using a smaller percentage of renewable energy. Many of the other convention coefficients are non-zero and negative. For consumption related variables and mining, these are negative as well. This suggests that larger consumption of natural resources predicts less investment, which also makes sense. On the other hand, predicted areas (marine and terrestrial) are positive. This also makes sense, as countries that protect more of their land an resources may have a more environmental and sustainable outlook and be more invested in renewables energy.
+
+Before using the model for prediction, it is worth briefly evaluating whether it is an appropriate model with some diagnostic checking (the diagnostic checking is relatively limited for this report, as the main purpose of this report prediction). Residual plots are shown below:
+
+```{r beta_residuals, , class.source = 'fold-hide', echo = TRUE, results='show'}
+# Model Residuals and Fitted Values
+beta_model_residuals = residuals(beta_model, type = c("quantile"))
+beta_model_fitted = fitted(beta_model)$mu[2]
+beta_model_residuals_df = data.frame(res = beta_model_residuals,
+                                     fit = beta_model_fitted)
+colnames(beta_model_residuals_df) = c("res","fit")
+
+# Histogram of Quantile Residuals
+histogram_beta_residuals = ggplot(beta_model_residuals_df, aes(x = res)) +
+  geom_histogram(aes(y = ..density..)) +
+  geom_density(alpha = 0.1, fill = "red") +
+  labs(x = "Quantile Residuals", y = "Density") +
+  theme(text = element_text(size = 20),
+    axis.text.y = element_text(angle=90, hjust=1, size = 10),
+    axis.text.x = element_text(size = 10),
+    plot.title = element_text(hjust = 0.5, size = 12),
+    axis.title=element_text(size=10,face="bold")) +
+  theme_minimal()
+
+# QQ Plot of Quantile Residuals
+qq_beta_residuals = qqplot_residuals(beta_model_residuals)
+
+# Residual vs. Fitted Plot
+resid_vs_fit_model = ggplot(beta_model_residuals_df, 
+                              aes(x = fit, y = res)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = 2, color = "red", size = .5) +
+  geom_smooth(formula = "y~x", method = "loess",
+              se=TRUE, linetype = 2, color = "red", size = .25) +
+  labs(x="Fitted Values (log-odds)",y="Residuals") + 
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  theme_minimal()
+
+# Plot
+plot_grid(histogram_beta_residuals,qq_beta_residuals, resid_vs_fit_model,
+          ncol = 2, nrow = 2, 
+          labels = c("Histogram", "Quantile-Quantile Plot", "Residuals vs. Fitted Values"),
+          label_size = 10,
+          hjust = -.75)
+
+```
+
+[COME BACK AND DO OUTLIER PLOT IF TIME]
+
+Quantile residuals are provided by the \textit{bamlss} package and are used here per the reccomendation from the bamlss website [CITE https://bayesr.r-forge.r-project.org/articles/glm.html]. The diagnostic plots overall suggest the beta regression model is an acceptable choice for the data, if not quite perfect. The histogram and the quantile-quantile plot (QQ Plot) both suggest the residuals are very roughly normally distributed. The histogram roughly looks like a normal distribution. The normal qunatiles and quantiles of the residuals roughly track, with some rightward skew. This suggests there are some outliers in the residuals on the right-hand side of the distribution (in the QQ Plot, the blue dots would track the black line exactly if the residuals were normally distributed). Finally, the residuals versus fitted plot shows the relationship between the residuals and the predicted values of the training data. Note the fitted values here are the log odds, and not in terms of percentages (as specified by the model). There should be now obvious relationship or heteroskedasticity. The plot suggests rough randomness in the relationship. Overall, the plots suggest that the model does not predict high renewable energy percentages particularly well, but the choice of a beta regression model seems somewhat justified.
+
+Given the model is adequate, prediction is done using the test data. Note that predicted values are available for the posterior mean and variance parameters, but only the predicted value is analyzed here (not the uncertainty around said prediction).
+
+```{r beta_prediction_error, , class.source = 'fold-show', echo = TRUE, results='show'}
+# Use the predict function and the test data
+beta.pred = predict(beta_model, newdata = x.test, type = "parameter")$mu
+
+# Calculate Mean Squared Error and Mean Absolute Error
+beta_rmse = sqrt(mean((y.test-beta.pred)^2))
+beta_abs_e = mean(abs(y.test-beta.pred))
+
+# Calculate Bias
+beta.fit = predict(beta_model, newdata = x.train, type = "parameter")$mu
+beta_bias = mean(beta.fit - y.train)
+```
+
+The mean squared error is .0752 and the mean absolute error is .2138. That means on average, the prediction was off by 21.38\%. As mentioned in the methods section, in the case of proportion data 33\% mean absolute error is the expected performance of an uninformed prediction. [NEED TO ADD THIS TO METHODS]. This implies that the sparse beta regre model does provide some help in prediction, but being off by 21.38\% on average is still fairly large.
+
+```{r beta_prediction_graph, class.source = 'fold-hide', echo = TRUE, results='show'}
+# Create Data Frame with Countries, Predicted Values
+# And Actual Values
+beta_predict_graph_data = data.frame(observation = c(1:39),
+           prediction = beta.pred,
+           actual = y.test,
+           Country = x.test$Country_Final)
+
+# Specifiy minimum and maxium in each case for plotting 
+# the line between points
+beta_predict_graph_data = beta_predict_graph_data %>%
+  mutate(min_value_col = pmin(prediction,actual)) %>%
+  mutate(max_value_col = pmax(prediction,actual)) %>%
+  mutate(Abs_Diff = abs(actual-prediction))
+
+# Plot the Predictions vs. Actual with difference lines and labels
+ggplot(data = beta_predict_graph_data, aes(x = observation, label = Country)) + 
+  geom_point(aes(y = prediction, color = 'Predicted')) +
+  geom_point(aes(y = actual, color='Actual')) +
+  geom_linerange(aes(ymin = min_value_col, ymax = max_value_col), 
+                col = "blue", linetype = "dashed", alpha = .5) +
+  geom_text(aes(y = actual), size = 2, vjust = -.5) +
+  labs(title = "Test Dataset Results for Beta Regression Model",
+       x="Country",y="Renewable Energy 2017 (%)") + 
+  scale_color_manual(name='Renewable % 2017',
+                     breaks=c('Actual', 'Predicted'),
+                     values=c('Actual'='black', 'Predicted'='red')) +
+  theme(legend.title=element_text(size=20), legend.text=element_text(size=14)) +
+  theme_minimal()
+```
+
+The above graph shows the difference between the predicted values and the actual values for renewable energy percentage in 2017. Generally, the largest source of error appears to come from countries that have actual renewable percentages close to or greater than .7. 
+
+```{r beta_prediction_analysis, class.source = 'fold-hide', echo = TRUE, results='show'}
+# Create Dataframe with Absolute Difference
+# Arrange to be in Order
+beta_predict_analysis_1 = beta_predict_graph_data %>%
+  dplyr::select(-c(min_value_col,max_value_col)) %>% 
+  arrange(-Abs_Diff)
+
+# Print out the Results
+kable(rbind(head(beta_predict_analysis_1,5),
+            tail(beta_predict_analysis_1,5)))
+```
+
+The above table confirms that the model performs worst at predicting high and 0 percentages. Interestingly, Palau was predicted to be the highest renewable percentage, but in fact is 0. Double checking the data, Palau having near zero renewable energy is confirmed by another source: the U.S. department of energy reported Palau's Electricity generation mix to be 97.5\% diesel in 2020 and 2.5\% solar [CITE https://www.energy.gov/sites/default/files/2020/09/f79/ETI-Energy-Snapshot-Palau_FY20.pdf]. Bhutan's high renewable percentage is due to its hydropower production that it both relies on for electricity and as a major export [NEED TO CITE THIS]. So while the model succeeds in predicting values between 0 and 1, it struggles to predict large percentages or percentages close to 0.
+
+# Model 3: Random Forest
+
+# Model 4: Boosted Trees
+
+# Discussion of Results
+
+# Conclusion
