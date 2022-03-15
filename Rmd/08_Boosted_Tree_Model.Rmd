@@ -7,6 +7,7 @@ output:
     code_folding: show
   html_document:
     code_folding: show
+bibliography: works_cited.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -16,12 +17,17 @@ knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_knit$set(root.dir = "/home/clw/Documents/UCSB/Quarter6/PSTAT 231/Final Project/PSTAT231_Final")
 ```
 
-# library
+# library 
 
 ```{r}
 library(gbm)
-
-
+library(tidyr)
+library(dplyr)
+library(plyr)
+library(ggplot2)
+library(tibble)
+library(forcats)
+library(knitr)
 ```
 
 # Load the Data
@@ -45,8 +51,17 @@ x.test = model_data[-train, ]
 y.test = model_data[-train, ]$renewable_percent_2017
 ```
 
-# 
+Another non-parametric model that is commonly used in prediction is boosted trees. The general principle of boosting is to take a weak learner, i.e. a model that high bias and low variance and fit the learners successively, using the results of the previous learner to fit the next learner. Gradient boosting is a specifically the case where each successive learner uses the residuals $(\hat{y_i}-y_i)$ with the highest values to fit the next learner. Different models can fit using a boosting algorithm. Boosting trees is a popular choice, since a single decision tree is a weak learner.[@Walia2017]
 
+Unlike some other regularized modeling techniques (such as a lasso linear model), a boosted tree has more than one parameter that needs to be considered in trying to produce the optimal model for prediction. The number of trees is one consideration (refered to as $M$ by Hastie, Tibshirani, and Friedman). The more iterations of successive tree that are fit, the better the model will match the training data, which can lead to overfitting.[see @ESL, section 10.12] Additionally, the number of nodes of the tree, called the depth, exhibits a similar phenomena. The "deeper" each tree is allowed to "grow", the better it will fit the data, leading potentially to overfitting and high variance (the depth is refered to as $D$). Typically tree depth is kept small in the case of boosting, since weak learners are desireable for this application.[@Walia2017],[@ESL, section 10.12] Finally, shrinkage can be implemented. Specifically, the value of a given tree in the boosting process is what is being "shrunk."[@ESL, section 10.12] A shrinkage parameter and the number of trees exhibit a tradeoff in reducing test error, with smaller shrinkage values requiring larger numbers of trees. This is reported to empirically produce better results [see @ESL, section 10.12] The shrinkage term is refered to as $\nu$ by Hastie, Tibshirani, and Friedman.
+
+Additionally, a loss function must be selected. Computationally, squared error loss (gaussian) is the default in \textif{gbm} package.[@gbm] absolute losss and t-distribution loss are also available. Other continuous loss functions exist but are not available in \textif{gbm}, and are likely more computationally expensive anyways [see @ESL, section 10.6].
+
+Therefore, a boosted tree model is fit while \textit{attempting} to optimize over $M$, $D$, and $\nu$. This is a hard problem, even for a relatively small data set such as the one in this report. Finally, cross validation is also implemented as part of the gbm package.
+
+The \textif{gbm} package is used in this report to fit a boosted tree model.[@gbm] The \textif{gbm} package has the ability to control $M$, $D$, and $\nu$, implement cross-validation, and choose the loss function. The loss function is set to "gaussian" in the following code and other options were not extensively considered (absolute loss and t distribution loss were tested for the final model and did not perform better). 
+
+Below the model used for boosted trees is defined. All predictors are considered in the model.
 ```{r boosted_model_definition}
 ## Model formula.
 ## y.train instead of renewable_percent 2017
@@ -59,35 +74,101 @@ boost_tree_model = y.train ~ X2017_Population_World_Bank + X2017_Land_Area_km_2 
   UN_Framework_Convention_on_Climate_Change + World__Heritage_Convention
 ```
 
+Greg Ridgeway, author of the \textif{gbm} vignette, reccomends choosing a very small $\nu$ and using cross-validation to find the optimal $M$. Presumably, $D$ is considered fixed. Given the small size of the data set, this report is going to try and do something that is likely generally computationally infeasible: find the model with the smallest cross-validation error optimizing over a range of $\nu$, $D$, and $M$. $M$ is maxed out at 750: some preliminary trials suggested that for various specifications, CV was usually increased by $M=750$. The number of cross validation folds is set to 10, as is common practice (and optimizing over another parameter would be compuationally intensive).
+
 ```{r boosted_model_optimization}
+# set seed for reproducibility
+set.seed(42)
+# Create a set of values for the shrinkage
 lambda = seq(.0005,.01,by=.0005)
+# Consider 5 possible depths
 depth = c(1,2,3,4,5)
+# Define a matrix to store the minimum CV Error in each trial
 cv_error_vector = matrix(NA,ncol=length(depth),nrow=length(lambda), 
                      dimnames = list(lambda,depth))
+# Define a matrix to locate the minimum CV error (i.e. find M)
+cv_error_position = matrix(NA,ncol=length(depth),nrow=length(lambda), 
+                     dimnames = list(lambda,depth))
+
+# Iterators
 i = 1
 j = 1
 
+# Loop over Nu and D
 for(i in 1:length(depth)) {
   for(j in 1:length(lambda)) {
     
+    # Fit the boosted model
     boost_model_optim = gbm(boost_tree_model, data=cbind(y.train,x.train),
                       cv.folds = 10, train.fraction = 1,
-                      distribution="gaussian", n.trees=500, interaction.depth=i,
+                      distribution="gaussian", n.trees=1000, interaction.depth=i,
                       shrinkage = lambda[j])
-    #cv_error_vector[j,i] = mean(boost_model_optim$cv.error)
-    cv_error_vector[j,i] = boost_model_optim$cv.error[750]
+
+    # Assign the minimum CV error value to the storage vector
+    cv_error_vector[j,i] = min(boost_model_optim$cv.error)
+    
+    # Assign the position (M) of the minimum CV to the other vector
+    cv_error_position[j,i] = which(as.numeric(boost_model_optim$cv.error)==
+                                     min(as.numeric(boost_model_optim$cv.error)))
   }
 }
 
-# stores indexes of max value
-min = which(cv_error_vector == min(cv_error_vector), arr.ind=TRUE)   
-print(paste("Maximum value: ",cv_error_vector[min]))
-print(min)
+# Since this takes a while to run, save out for use so this 
+# block of code only needs to run once
+save(cv_error_vector, file="Model_Output/Optimized_GBM_Errors.Rdata")
+save(cv_error_position, file="Model_Output/Optimized_GBM_Positions.Rdata")
+```
 
-plot(lambda,rmse_vector)
+In the above code chunk the boosting tree model was fit for 20 values of $\nu$ (from .0005 to .01), 5 values of $D$ (1 to 5), and tree depths up to 1000. The results can be loaded below without rerunning the the above code chunk.
+
+```{r boosted_model_optimization_cv, warning = FALSE}
+# Load coss-validation results of above optimizing code chunk
+load(file="Model_Output/Optimized_GBM_Errors.Rdata")
+load(file="Model_Output/Optimized_GBM_Positions.Rdata")
+
+# Get the Indeces of the Optimal Values
+Optimal_Params_CV = which(cv_error_vector == min(cv_error_vector), arr.ind=TRUE)
+Optimal_lambda = Optimal_Params_CV[1]
+Optimal_D = Optimal_Params_CV[2]
+
+# Print the Parameter Values that Minimize CV
+paste0("Optimal nu: ",lambda[Optimal_lambda])
+paste0("Optimal D : ",Optimal_D)
+paste0("Optimal M: ", cv_error_position[Optimal_lambda,Optimal_D])
+paste0("Optimal CV error: ", round(min(cv_error_vector),5))
+
+# Print the CV Minimum Errors as a Heat Plot
+# Note: This code is based on code from the following source:
+# https://datavizpyr.com/heatmap-from-matrix-using-ggplot2-in-r/
+graph_cv_error_df = cv_error_vector %>% 
+  as.data.frame() %>%
+  rownames_to_column("Nu") %>%
+  pivot_longer(-c(Nu), names_to = "D", values_to = "CV_Error") %>%
+  mutate(D= fct_relevel(D,colnames(cv_error_vector))) %>%
+  mutate(Nu = as.numeric(Nu)) %>%
+  arrange(-Nu)
+
+# Plot
+ggplot(data = graph_cv_error_df, aes(x=D, y=Nu, fill=CV_Error)) + 
+  geom_raster() + 
+  scale_fill_viridis_c() +
+  #scale_y_continuous(breaks = .00001) +
+  labs(title = "Heatmap of CV Errors Across D and Mu\nMinimum Error Across M") +
+  theme_minimal()
+```
+
+The combination of parameters that minimizes CV error was found to be $\nu = .008$, $D = 3$, and $M = 560$, and the CV Error was .08201. The code for the above plot is based on code available here[@heatmap].The heatmap above shows the matrix of $\nu$ and $D$, and the minimum CV value across all trees M for each value. Lower minimum CV values appear more to the right, for models with trees with more depth. Interestingly though the model with lowest CV Error is $D=3$. Also it can be seen the lowest CV Error is not at the low end of $\nu$ on this range for any $D$. It is difficult to know for sure; ideally more values of $\nu$ would be tested but this is computationally expensive. Ultimately, the above graphic suggests that finding optimal parameters is tricky and there is not an easy solution.
+
+```{r boosted_model_optimization_M_Matrix}
+# The Number of Trees that minimizes CV Error
+kable(cv_error_position)
+```
+
+The above table indicates the number of trees that were required to minimize CV error out of 1000. Note that for the values in the table at 1000, it is probably that CV error would have been reduced further for the given $\nu$ and $\D$ if more trees had been allowed. The above emprical evidence supports the $\nu$, $M$ tradeoff discussed by Hastie et. al. [@ESL, section 10.12] and Ridgeway [@gbm]. It also is apparent that a lower $M$ is required at a specified $\nu$ as $\D$ increaes to reach a lower cross-validation error. For example, for $\nu = 0.009$, when $D=5$ the minimizing $M$ is 210 but is 320 when $D=3$.  
 
 
 
+```{r}
 set.seed(42)
 boost_model = gbm(boost_tree_model, data=cbind(y.train,x.train),
                     cv.folds = 10,
