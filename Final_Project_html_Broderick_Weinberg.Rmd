@@ -3,9 +3,9 @@ title: "PSTAT 231 Final Broderick-Weinberg"
 author: "Hailey Broderick and Callum Weinberg"
 date: "March 11, 2022"
 output:
-  html_document:
-    code_folding: show
   html_notebook:
+    code_folding: show
+  html_document:
     code_folding: show
 bibliography: works_cited.bib
 ---
@@ -51,23 +51,35 @@ The structure of the report is as follows:
     + Model 5: Boosted Tree Model
 * Results
 * Conclusion
-    + Summary of Report Results
+    + Findings and Evaluation of Project Goals
     + Limitations and Future work
 * Works Cited
 
 ## Background
 
-The United Nations Statistics Division defines renewable energy production as the following: [@Shea2014]
+The makeup of energy generation is an important subject in the 21st century. As of 2020, fossil fuels are the largest categorical contributor to greenshouse gas emmisions.[@Alers2020] This in turn is a major contributor to climate change. Many countries and international organizations, such as the United Nations, are aiming to make energy generation "green", "renewable", or "clean" in order to achieve carbon neutrality.[@Alers2020] And there has been an increase in renewable energy generation in the last decade. From 2010 to 2018, 411 million people across the globe started using clean electricity.[@Alers2020]
 
-"Renewable electricity production  refers to the proportion of total electricity produced that comes from a renewable origin. Electricity production refers to gross electricity production, which is the sum of the electrical energy production by all the generating units/installations concerned (including pumped storage) measured at the output terminals of the main generators. This includes the consumption by station auxiliaries and any losses in the transformers that are considered integral parts of the station. Renewable electricity production was calculated as the sum of electricity produced from hydro, geothermal, solar, wind, tide, wave and ocean sources. All electricity production from combustible fuels is considered non-renewable; therefore electricity produced from burning biomass or renewable waste is not included as renewable electricity in this table. However, this has been observed to be a relatively negligible proportion of electricity production in most cases." CITE "Renewable elec production percentage.xlsx""
+Definitions of renewable enegry varies, though it almost always excluded fossil fuels. The United Nations Statistics Division defines renewable energy production as the following:
+
+"Renewable electricity production  refers to the proportion of total electricity produced that comes from a renewable origin. Electricity production refers to gross electricity production, which is the sum of the electrical energy production by all the generating units/installations concerned (including pumped storage) measured at the output terminals of the main generators. This includes the consumption by station auxiliaries and any losses in the transformers that are considered integral parts of the station. Renewable electricity production was calculated as the sum of electricity produced from hydro, geothermal, solar, wind, tide, wave and ocean sources. All electricity production from combustible fuels is considered non-renewable; therefore electricity produced from burning biomass or renewable waste is not included as renewable electricity in this table. However, this has been observed to be a relatively negligible proportion of electricity production in most cases."[@RenewablEenergyProductionxlsx]
+
+The above source applies to the data in this project, and therefore the scope of renewable energy in this project as is described above.
+
+Given the importance of transitioning electricity generation to renewable, it is important to better understand what factors relate to the percentage of a countries energy generation that is composed of renewable energy.
 
 ## Data: Global Environmental Indicators
 
+The data for this report comes from the Global Environmental Dataset, currently accessible online here as a kaggle hosted data set (kaggle is an online platform for data set hosting and statistical learning competitions): https://www.kaggle.com/ruchi798/global-environmental-indicators. [@IndicatorData]. The kaggle data set is comprised of 128 files in 10 sub folders, representing different categories of the data. Each subfolder corresponds to a general area of data. Within each folder are varying numbers of .csv files with environmental indicator data for countries. For each .csv file, there is a .xslx file which generally has some description of the data in the corresponding .csv file. The indicator categories include: Air and Climate, Biodiversity, Energy and Minerals, Forests, Governance, Inland Water Resources, Land and Agriculture, Marine and Coastal Areas, Natural Disasters, and Waste. Due to time limitations for this project, the data in the Inland Water Resources category and Waste category were not considered for this project.
 
+The .csv files are generally structured as follows: the country name and country ID are rows in the data, and various indicators and other information are in the columns. In some files the units are listed in the column titles, in others the .xlsx files contain the variable information. Some columns contain indicator information, while others are descriptive of the indicators (i.e. the year the indicator occured in, or notes on certain variables). 
 
-[DISCUSSION OF WHICH FOLDERS, CSVS, and VARIABLES are kept]
+Missing data is a common occurance in the Global Environmental Indicators data set. Not all countries are listed in each file. In some files more than half of the countries are not listed. Even when they are listed, not all indicators are populated for a given county. Additionally, the country name and country ID are not consistant across files in the whole data set, or even the subfolders in a few cases. These issues are addressed below in the Data Cleaning section of the report.
 
-[CITE Kaggle and world bank]
+The "Renewable elec production percentage" csv file (in the Energy and Minerals subfolder) contains the renewable energy percentage (of total energy production) by country. This is the predicted indicator for all models in this report.
+
+While this report primarily focuses on using the Global Environmental Indicators data set, country population, size, and GDP data was also included. This data was added in order to control for potential confounding variables in model fitting. These three variables come from the World Bank "DataBank" (available at https://data.worldbank.org/indicator/).[@WorldBankData] The three indicator files of interest are AG.LND.TOTL.K2_DS2_en (Country land size in $km^2$), NY.GDP.MKTP.CD_DS2 (Country GDP US equivalent, as of 2022-02-15), andSP.POP.TOTL_DS2 (Country Population). 2017 indicators were used in the models in all three cases. When values were missing for these variables in the world bank data, Wikipedia was used to get rough approximations. This was only necessary in a few cases and generally applied to smaller island nations and French/British overseas dependencies.
+
+Along with their online, original-source, availability, all the above listed data is available at https://github.com/leoncw/PSTAT231_Final in the "Raw_Data" folder. The World Bank variables were manually copied into the "02_final_crosswalk.csv" file
 
 ## Purpose and Methods
 
@@ -1251,5 +1263,11 @@ The above table confirms that the model performs worst at predicting high and 0 
 # Discussion of Results
 
 # Conclusion
+
+## Findings and Evaluation of Project Goals
+
+## Limitations and Future Work
+
+The Inland Water Resources and Waste data, available from the Global Environmental Indicators data set, were not considered due to time constraints. Both folders have a large number of .csv's and corresponding data. Future work could be done to include indicators from these areas and determine if they substantial improve the prediction accuracy of these models.
 
 # Works Cited
