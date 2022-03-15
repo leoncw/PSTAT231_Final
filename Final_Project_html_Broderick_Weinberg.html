@@ -192,12 +192,54 @@ pre code {
 </div>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
-<p>[Make reference early to the github page where this is hosted]</p>
+<p>This report has been completed by Hailey Broderick and Callum Weinberg for PSTAT 131/231 in the Winter quarter of 2022 at the University of Santa Barbara. For course credit, the report has been submitted to Gauchospace, along with the structured folder which contains the raw data, additional markdown files (the necessary code is available below unless otherwise stated, but these may show some extra work), a codebook/data dictionary, data crosswalks, intermediate data files, a works cited document (called &quot;works_cited.bib&quot;), and the RMd file that creates this HTML file. If accessing this project via online interface, the materials can be found here: <a href="https://github.com/leoncw/PSTAT231_Final" class="uri">https://github.com/leoncw/PSTAT231_Final</a>. The web hosted version of this HTML document can be found HERE (INSERT THIS).</p>
+<p>The primary purpose of this project and the course final assignment was to take a dataset and fit models to predict values of a variable. Specifically, the prediction is perfomed on a known variable (i.e. this is a supervised learning project) and a test data set is used to evaluate the performance of the models. Performing inferential statistics on the models was not the primary purpose of this project, but is discussed at times in the report.</p>
+<p>The structure of the report is as follows:</p>
+<ul>
+<li>Executive Summary</li>
+<li>Introduction
+<ul>
+<li>Background</li>
+<li>Data: Global Environmental Indicators</li>
+<li>Purpose and Methods</li>
+</ul></li>
+<li>Coding Requirements
+<ul>
+<li>Libraries</li>
+<li>Functions</li>
+</ul></li>
+<li>Data Cleaning
+<ul>
+<li>Manual Crosswalks</li>
+<li>Loading and Combining Datasets</li>
+<li>Data Limitation</li>
+<li>Data Interpolation</li>
+</ul></li>
+<li>Analysis and Prediction
+<ul>
+<li>Exploratory Data Analysis</li>
+<li>Training and Test Data</li>
+<li>Model 1: Regularized Linear Model</li>
+<li>Model 2: Regularized Generalized Linear Model (Beta Regression)</li>
+<li>Model 3: Principal Component Analysis and Regression</li>
+<li>Model 4: Random Forest Model</li>
+<li>Model 5: Boosted Tree Model</li>
+</ul></li>
+<li>Results</li>
+<li>Conclusion
+<ul>
+<li>Summary of Report Results</li>
+<li>Limitations and Future work</li>
+</ul></li>
+<li>Works Cited</li>
+</ul>
 <div id="background" class="section level2">
 <h2>Background</h2>
+<p>The United Nations Statistics Division defines renewable energy production as the following: <span class="citation">(Shea and Boldt 2014)</span></p>
+<p>&quot;Renewable electricity production refers to the proportion of total electricity produced that comes from a renewable origin. Electricity production refers to gross electricity production, which is the sum of the electrical energy production by all the generating units/installations concerned (including pumped storage) measured at the output terminals of the main generators. This includes the consumption by station auxiliaries and any losses in the transformers that are considered integral parts of the station. Renewable electricity production was calculated as the sum of electricity produced from hydro, geothermal, solar, wind, tide, wave and ocean sources. All electricity production from combustible fuels is considered non-renewable; therefore electricity produced from burning biomass or renewable waste is not included as renewable electricity in this table. However, this has been observed to be a relatively negligible proportion of electricity production in most cases.&quot; CITE &quot;Renewable elec production percentage.xlsx&quot;&quot;</p>
 </div>
-<div id="data" class="section level2">
-<h2>Data</h2>
+<div id="data-global-environmental-indicators" class="section level2">
+<h2>Data: Global Environmental Indicators</h2>
 <p>[DISCUSSION OF WHICH FOLDERS, CSVS, and VARIABLES are kept]</p>
 <p>[CITE Kaggle and world bank]</p>
 </div>
@@ -205,8 +247,9 @@ pre code {
 <h2>Purpose and Methods</h2>
 </div>
 </div>
-<div id="libraries" class="section level1">
-<h1>Libraries</h1>
+<div id="coding-requirments" class="section level1">
+<h1>Coding Requirments</h1>
+<p>The following libraries are needed to run the code throughout this report. They should be installed on a machine using the &quot;install.packages()&quot; function in R before loading.</p>
 <pre class="r"><code>library(knitr)
 library(plyr)
 library(dplyr)
@@ -951,8 +994,8 @@ save(full_data, file=&quot;Intermediate_Data/01_full_data.Rdata&quot;)
 remove(combined_air_climate_clean,combined_energy_minerals_clean,combined_land_agricultural_clean,
        combined_natural_disaster_clean,combined_other_clean,final_crosswalk,final_crosswalk_Country_Only)</code></pre>
 </div>
-<div id="limit-the-data" class="section level2">
-<h2>Limit the Data</h2>
+<div id="limiting-the-data" class="section level2">
+<h2>Limiting the Data</h2>
 <p>The following code limits the observations and variables based on a number of practical criteria. First, any missing values are replaced with NAs. Non-numeric data is converted to numeric (except for country names). Variables that were originally included from the CSVs as &quot;Notes&quot; are excluded. Additionally, the renewable percentage for 2017 is converted to a percentage (the data is a percentage from the source, not a decimal).</p>
 <p>[NOTE NUMBER OF ROWS AND COLUMNS DROPPED]</p>
 <pre class="r fold-hide"><code>## Load the Data from the 01 File
@@ -1038,8 +1081,8 @@ full_data_row_remove = full_data_clean %&gt;%
 # Variables with signicant numbers of missings are dropped
 limited_data = full_data_row_remove %&gt;%
   select(c(Country_Final,Country_ID_Final,renewable_percent_2017,X2017_Population_World_Bank,X2017_Land_Area_km_2,X2017_GDP_US_Dollars_World_Bank,
-           CH4,CO2,GHG,NOx,energy_supply_petajoules,contribution_renewable_to_electric_production,energy_intensity_2017,energy_supply_2017,mining_value_2017,
-           percent_land_agricultural_2013,nitrogen_consumption,phosphate_consumption,potash_consumption,terrestrial_protected_areas,
+           CH4,CO2,GHG,NOx,energy_supply_petajoules,contribution_renewable_to_electric_production,energy_intensity_2017,energy_supply_2017,
+           mining_value_2017, percent_land_agricultural_2013,nitrogen_consumption,phosphate_consumption,potash_consumption,terrestrial_protected_areas,
            protected_areas_marine_terrestrial,forest_area_2015,Basel_Convention,CITES,Convention_on_Biological_Diversity,Kyoto__Protocol,Montreal_Protocol,
            Paris_Agreement,Ramsar_Convention,Rotterdam_Convention,Stockholm_Convention,UN_Convention_on_the_Law_of_the_Sea,
            UN_Convention_to_Combat_Desertification,UN_Framework_Convention_on_Climate_Change,World__Heritage_Convention))
@@ -1048,6 +1091,7 @@ limited_data = full_data_row_remove %&gt;%
 save(limited_data, file=&quot;Intermediate_Data/02_limited_data.Rdata&quot;)
 # Clean Environment
 remove(full_data_clean,full_data_row_remove,i,j)</code></pre>
+<p>Note that after starting the modeling process, it was discovered that energy_supply_2017 and energy_supply_petajoules contained identical data from two different sources. energy_supply_2017 was not included in the models, but appears in the data cleaning process above.</p>
 </div>
 </div>
 <div id="interpolating-missing-data" class="section level1">
@@ -1287,30 +1331,30 @@ beta_model = bamlss(beat_regression_model, family = &quot;beta&quot;,
 ## BIC -236.799 edf 32.000 lambda 0.0013 iteration  98
 ## BIC -236.799 edf 32.000 lambda 0.0011 iteration  99
 ## BIC -236.799 edf 32.000 lambda 0.0010 iteration 100
-## elapsed time:  0.48sec
+## elapsed time:  0.47sec
 ## Starting the sampler...
 ## 
-## |                    |   0% 29.98sec
-## |*                   |   5% 29.72sec  1.56sec
-## |**                  |  10% 27.59sec  3.07sec
-## |***                 |  15% 25.78sec  4.55sec
-## |****                |  20% 24.26sec  6.07sec
-## |*****               |  25% 22.69sec  7.56sec
-## |******              |  30% 21.10sec  9.04sec
-## |*******             |  35% 19.85sec 10.69sec
-## |********            |  40% 18.23sec 12.16sec
-## |*********           |  45% 16.67sec 13.64sec
-## |**********          |  50% 15.11sec 15.11sec
-## |***********         |  55% 13.56sec 16.57sec
-## |************        |  60% 12.03sec 18.04sec
-## |*************       |  65% 10.50sec 19.50sec
-## |**************      |  70%  8.98sec 20.96sec
-## |***************     |  75%  7.48sec 22.44sec
-## |****************    |  80%  5.97sec 23.90sec
-## |*****************   |  85%  4.48sec 25.36sec
-## |******************  |  90%  2.98sec 26.83sec
-## |******************* |  95%  1.49sec 28.29sec
-## |********************| 100%  0.00sec 29.77sec</code></pre>
+## |                    |   0% 31.17sec
+## |*                   |   5% 28.90sec  1.52sec
+## |**                  |  10% 27.10sec  3.01sec
+## |***                 |  15% 25.60sec  4.52sec
+## |****                |  20% 24.11sec  6.03sec
+## |*****               |  25% 22.60sec  7.53sec
+## |******              |  30% 21.04sec  9.02sec
+## |*******             |  35% 19.80sec 10.66sec
+## |********            |  40% 18.18sec 12.12sec
+## |*********           |  45% 16.59sec 13.58sec
+## |**********          |  50% 15.04sec 15.04sec
+## |***********         |  55% 13.51sec 16.52sec
+## |************        |  60% 11.98sec 17.98sec
+## |*************       |  65% 10.47sec 19.44sec
+## |**************      |  70%  8.96sec 20.90sec
+## |***************     |  75%  7.46sec 22.37sec
+## |****************    |  80%  5.96sec 23.83sec
+## |*****************   |  85%  4.47sec 25.36sec
+## |******************  |  90%  2.98sec 26.82sec
+## |******************* |  95%  1.49sec 28.28sec
+## |********************| 100%  0.00sec 29.75sec</code></pre>
 <pre class="r fold-show"><code>## Summary of the model
 summary(beta_model)</code></pre>
 <pre><code>## 
@@ -1420,7 +1464,7 @@ summary(beta_model)</code></pre>
 ## Sampler summary:
 ## -
 ## DIC = -319.5839 logLik = 179.1992 pd = 38.8144
-## runtime = 29.784
+## runtime = 29.765
 ## ---
 ## Optimizer summary:
 ## -
@@ -1635,6 +1679,14 @@ kable(rbind(head(beta_predict_analysis_1,5),
 </div>
 <div id="conclusion" class="section level1">
 <h1>Conclusion</h1>
+</div>
+<div id="works-cited" class="section level1 unnumbered">
+<h1>Works Cited</h1>
+<div id="refs" class="references">
+<div id="ref-Shea2014">
+<p>Shea, Nicholas, and Annika Boldt. 2014. “Supra-personal cognitive control.” <em>Trends in Cognitive Sciences</em> 18: 186–93. doi:<a href="https://doi.org/10.1016/j.tics.2014.01.006">10.1016/j.tics.2014.01.006</a>.</p>
+</div>
+</div>
 </div>
 <div class="footnotes">
 <hr />

@@ -3,9 +3,9 @@ title: "PSTAT 231 Final Broderick-Weinberg"
 author: "Hailey Broderick and Callum Weinberg"
 date: "March 11, 2022"
 output:
-  html_notebook:
-    code_folding: show
   html_document:
+    code_folding: show
+  html_notebook:
     code_folding: show
 bibliography: works_cited.bib
 ---
@@ -53,6 +53,7 @@ The structure of the report is as follows:
 * Conclusion
     + Summary of Report Results
     + Limitations and Future work
+* Works Cited
 
 ## Background
 
@@ -861,13 +862,13 @@ remove(combined_air_climate_clean,combined_energy_minerals_clean,combined_land_a
 ```
 
 
-## Limit the Data
+## Limiting the Data
 
 The following code limits the observations and variables based on a number of practical criteria. First, any missing values are replaced with NAs. Non-numeric data is converted to numeric (except for country names). Variables that were originally included from the CSVs as "Notes" are excluded. Additionally, the renewable percentage for 2017 is converted to a percentage (the data is a percentage from the source, not a decimal). 
 
 [NOTE NUMBER OF ROWS AND COLUMNS DROPPED]
 
-```{r additional_data_cleaning, class.source = 'fold-hide', echo = TRUE, results='hide'}
+```{r additional_data_cleaning, class.source = 'fold-hide', echo = TRUE, results='hide', warning = FALSE}
 ## Load the Data from the 01 File
 load(file="Intermediate_Data/01_full_data.Rdata")
 
@@ -1250,3 +1251,5 @@ The above table confirms that the model performs worst at predicting high and 0 
 # Discussion of Results
 
 # Conclusion
+
+# Works Cited
