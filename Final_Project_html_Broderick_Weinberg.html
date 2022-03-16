@@ -9,7 +9,7 @@
     
         <meta name="date" content="2022-03-11" />
     
-    <title>Predicting Countries' Renewable Energy Percentage Using Environmental Indicators using Parametric and Non-Parametric Modeling</title>
+    <title>Predicting Countries' Renewable Energy Percentage with Environmental Indicators</title>
 
         <script src="Final_Project_html_Broderick_Weinberg_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -125,7 +125,9 @@
             <li><a href="#introduction">Introduction</a><ul>
             <li><a href="#background">Background</a></li>
             <li><a href="#data-global-environmental-indicators">Data: Global Environmental Indicators</a></li>
-            <li><a href="#purpose-and-methods">Purpose and Methods</a></li>
+            <li><a href="#purpose">Purpose</a></li>
+            <li><a href="#methods">Methods</a></li>
+            <li><a href="#measuring-error-and-bias">Measuring Error and Bias</a></li>
             </ul></li>
             <li><a href="#coding-requirments">Coding Requirments</a><ul>
             <li><a href="#libraries">Libraries</a></li>
@@ -167,7 +169,7 @@
    </div>
    
         
-      <h1 class="title">Predicting Countries' Renewable Energy Percentage Using Environmental Indicators using Parametric and Non-Parametric Modeling</h1>
+      <h1 class="title">Predicting Countries' Renewable Energy Percentage with Environmental Indicators</h1>
          <h1 class="subtitle">PSTAT 231 Final Broderick-Weinberg</h1>
    
       <p class="authors">
@@ -194,7 +196,9 @@
 <ul>
 <li>Background</li>
 <li>Data: Global Environmental Indicators</li>
-<li>Purpose and Methods</li>
+<li>Purpose</li>
+<li>Methods</li>
+<li>Measuring Error and Bias</li>
 </ul></li>
 <li>Coding Requirements
 <ul>
@@ -243,17 +247,31 @@
 <p>While this report primarily focuses on using the Global Environmental Indicators data set, country population, size, and GDP data was also included. This data was added in order to control for potential confounding variables in model fitting. These three variables come from the World Bank &quot;DataBank&quot; (available at <a href="https://data.worldbank.org/indicator/" class="uri">https://data.worldbank.org/indicator/</a>).<span class="citation">(DataBank, n.d.)</span> The three indicator files of interest are AG.LND.TOTL.K2_DS2_en (Country land size in <span class="math inline">\(km^2\)</span>), NY.GDP.MKTP.CD_DS2 (Country GDP US equivalent, as of 2022-02-15), andSP.POP.TOTL_DS2 (Country Population). 2017 indicators were used in the models in all three cases. When values were missing for these variables in the world bank data, Wikipedia was used to get rough approximations. This was only necessary in a few cases and generally applied to smaller island nations and French/British overseas dependencies.</p>
 <p>Along with their online, original-source, availability, all the above listed data is available at <a href="https://github.com/leoncw/PSTAT231_Final" class="uri">https://github.com/leoncw/PSTAT231_Final</a> in the &quot;Raw_Data&quot; folder. The World Bank variables were manually copied into the &quot;02_final_crosswalk.csv&quot; file</p>
 </div>
-<div id="purpose-and-methods" class="section level2">
-<h2>Purpose and Methods</h2>
-<p>The primary purpose of this report is to predict renewable energy percentages for countries in 2017 using Global energy indicators provided in the Global Environmental Indicators data set. This report primarily focuses on predictive statistics (although there may be some comments related to inferential statistics). The motivation is that certain environmental indicators may be able to predict the renewable energy percentage a country exhibits.</p>
-<p>An analysis of countries as observations means that any data set with a large number of predictors will almost certainly deal with the statistical problem of <span class="math inline">\(p\)</span> not being significantly larger than <span class="math inline">\(n\)</span> (p being predictors, and n being number of observations). Therefore this project will focus on fitting sparsity-induding predictive models. Sparsity inducing models generally &quot;shrink&quot; parameters to either small values (e.g. ridge regression) or 0 (e.g. lasso regression) so that effectively, <span class="math inline">\(p\)</span> is decreased. Such models often allow some bias to decrease the variance that would otherwise be inherent to a model with relatively large <span class="math inline">\(p\)</span>. Parametric and non-parametric models are included.</p>
+<div id="purpose" class="section level2">
+<h2>Purpose</h2>
+<p>The primary purpose of this report is to predict renewable energy percentages for countries in 2017 using Global energy indicators provided in the Global Environmental Indicators data set. This report primarily focuses on predictive statistics (although there may be some comments related to inferential statistics). The motivation is that certain environmental indicators may be able to predict the renewable energy percentage a country exhibits. The predictions are quantitatively assessed, and the performance of the models are compared.</p>
+</div>
+<div id="methods" class="section level2">
+<h2>Methods</h2>
+<p>Since there are only approximately 200 countries, this project deals with the statistical problem of <span class="math inline">\(p\)</span> not being significantly larger than <span class="math inline">\(n\)</span> (p being predictors, and n being number of observations). Therefore this project focuses on fitting sparsity-inducing predictive models. Sparsity inducing models generally &quot;shrink&quot; parameters to either small values (e.g. ridge regression) or 0 (e.g. lasso regression) so that effectively, <span class="math inline">\(p\)</span> is decreased. Such models often allow some bias in order to decrease the variance that would otherwise be inherent to a model with relatively large <span class="math inline">\(p\)</span>. Parametric and non-parametric models are included.</p>
 <p>All of the selected models are supervised learning models. The models are trained on a subset of the data (called the &quot;training set&quot;) and are validated with cross-validation (see Training and Test Data section for further discussion), with one exception (see Model 2). The predictive power of the models is measured using a test training set. The model error is the primary metric for measuring the success of prediction. Error is generally measured using a loss function. Renewable energy percentage is a continuous, numeric, variable bounded by 0 and 1. Therefore the two loss functions used are based on absolute loss and quadratic loss.</p>
-<p>The following applies for reported renewable energy percentage <span class="math inline">\(y_i\)</span> (for country <span class="math inline">\(i\)</span>) and  renewable energy percentage <span class="math inline">\(\hat{y_i}\)</span>. Mean Absolute Error (MAE), which is a form of absolute loss, is defined as:</p>
-<p><span class="math display">\[MAE = \frac{\sum_{i = 1}^{n}|\hat{y_i}-y_i|}{n}\]</span></p>
-<p>Root Mean Square Error (RMSE), which is a form of quadratic loss, is defined as:</p>
-<p><span class="math display">\[RMSE = \sqrt{\frac{\sum_{i = 1}^{n}(\hat{y_i}-y_i)^2}{n}}\]</span></p>
-<p>RMSE is the most commonly used metric in comparing the relative accuracy of predictive models. However, MAE has a very nice interpreation in this project. Since percentages are bounded by 0 and 1, the MAE is easily interpreted as the average percentage miss in either direction for the set of predictions. So if the <span class="math inline">\(MAE = .10\)</span> for a model and a specific test data set, then the predictions on average were .1% away from the true percentages. RMSE and MAE are typically measured on the test data (or validation data), i.e. <span class="math inline">\(y_i \in \{y_{test}\}\)</span></p>
-<p>[BLURB ABOUT MAE]</p>
+</div>
+<div id="measuring-error-and-bias" class="section level2">
+<h2>Measuring Error and Bias</h2>
+<p>The following applies for observed renewable energy percentage <span class="math inline">\(y_i\)</span> (for country <span class="math inline">\(i\)</span>) and predicted renewable energy percentage <span class="math inline">\(\hat{y_i}\)</span>.</p>
+<p>Root Mean Square Error (RMSE), which is a form of quadratic loss, is defined as: <span class="math display">\[RMSE = \sqrt{\frac{\sum_{i = 1}^{n}(\hat{y_i}-y_i)^2}{n}}\]</span></p>
+<p>RMSE is the most commonly used metric in comparing the relative accuracy of predictive models. Mean Absolute Error (MAE), which is a form of absolute loss, is defined as: <span class="math display">\[MAE = \frac{\sum_{i = 1}^{n}|\hat{y_i}-y_i|}{n}\]</span> RMSE and MAE are typically measured on the test data (or validation data), i.e. <span class="math inline">\(y_i \in \{y_{test}\}\)</span>.</p>
+<p>MAE is particularly useful in evaluating the predictions made in this report. Since percentages are bounded by 0 and 1, the MAE is the average percentage miss in either direction for the set of predictions. So if the <span class="math inline">\(MAE = .10\)</span> for a model and a specific test data set, then the predictions on average were .1% away from the true percentages.</p>
+<p>Additionally, MAE implies a threshold for useful models for a response bounded by 0 and 1. If no distributional information is assumed about the response (i.e. set an uninformed prior distribution for the response, which would be the uniform distribution) then the MAE of a completely naive predictor would be roughly .33. In other words, (conditional on nothing being known about renewable energy percentage) if we randomly generated values between 0 and 1 from a uniform distribution, we would expect the MAE for a large sample size to be about .33. An empircal example of this is shown in the code above.</p>
+<pre class="r"><code># Define two samples from Uniform distribution
+set.seed(42)
+sample_1 = runif(100000,0,1)
+sample_2 = runif(100000,0,1)
+
+# Calculate MAE
+mean(abs(sample_1-sample_2))</code></pre>
+<pre><code>## [1] 0.3352109</code></pre>
+<p>This sets a limit on what a useful model can be. If a model has an MAE of .4 for example, then we could do better by just guessing. Alternatively, any model with MAE substantially below .33 implies the model is more useful than random guessing.</p>
 <p>Finally, the Bias of the model is considerd. Bias is defined as:</p>
 <p><span class="math display">\[Bias = \frac{\sum_{i = 1}^{n}\hat{y_i}-y_i}{n}\]</span> Unlike MAE and RMSE, bias is measured using the training data, i.e. <span class="math inline">\(y_i \in \{y_{train}\}\)</span>. Effectively, it measures how close the predicted values are on average to the values used to fit them. By effectively having a large number of predictors (e.g. <span class="math inline">\(n\)</span> fitting polynomial terms in a Generalized Additive Model), it is often possible to get the bias close to 0. This generally indicates the model is overfitted, and will perform poorly on test data. Low bias usually comes at the cost of high variance in the prediction. Bias is measured in this report to provide warning of overfitting. It may not be directly comparable between models, as some models tend to have lower bias but still may perform better.</p>
 </div>
@@ -1165,8 +1183,11 @@ ggplot(distr_df, aes(x = y_i, fill = variable)) +
 </div>
 <div id="training-and-test-data" class="section level2">
 <h2>Training and Test Data</h2>
-<p>[Include discussion of training and Test Data Set]</p>
-<p>Cross Validation (abbreviated CV in the report)</p>
+<p>The cleaned data is divided into test and training data. The testing data is used to evaluate the performance of the predictive model. Using a seperate set of data forces the model to perform on new values, as if it were predicting observations that had not been recorded. This process simulates what would occur if new observations were trying to be predicted (new countries came into being) or perhaps could be used to predict renewable energy percentages in future years. The test data is used to calculate RMSE and MEA.</p>
+<p>The training data is used to fit the model. The training data is additionally used to calculate bias.</p>
+<p>The test-training data split for this model was decided as <span class="math inline">\(80\%\)</span> training and <span class="math inline">\(20\%\)</span>. Given there are only 195 observations available after the data cleaning process, it is important to have enough data to train a robust model. Assigning <span class="math inline">\(20%\)</span> of the data allows for 39 observations to be in the test set. This is enough that outliers should not seriously impact the results without limiting the training data set size more than necesary. Although not the main reason for the decided split, 39 observations allows for easy graphing of the predictions versus the actual reported value.</p>
+<p>Along with test and training data, there is a need for validation data. The purpose of validation data is to get estimates of the test error while still fitting the model parameters (the test data is reserved for the final model). In this project cross validation (CV) is used where possible. Cross validation is the process of breaking the training data into &quot;folds.&quot; The for the <span class="math inline">\(kth\)</span> fold, the other folds are treated as training data to fit the model, and the <span class="math inline">\(kth\)</span> fold is treated as test data to get the CV error. Generally the reported CV error is the average over the <span class="math inline">\(k\)</span> folds. For example, if 10 fold cross validation is used, then the training data will be split into 10 parts, and will fill be fit 10 times. The CV error for the model will be the average of the 10 test errors. The value of cross validation is that it allows for all the training data to be used in model fitting.</p>
+<p>Below the data is broken into test and training data randomly.</p>
 <pre class="r"><code>## Load the Data from the 02 File
 load(file=&quot;Intermediate_Data/03_model_data.Rdata&quot;)
 # Set Seed for Reproducibility
@@ -1179,6 +1200,66 @@ y.train = model_data[train, ]$renewable_percent_2017
 # test set remaining 20% of original data
 x.test = model_data[-train, ]
 y.test = model_data[-train, ]$renewable_percent_2017</code></pre>
+<p>No stratefication is employed in splitting the test and training data. Stratified samling is a method for sampling randomly while ensuring certain categories of observations are present at specified levels in the training or test data. For example, the training data might be sampled so that there are equal percentages of high and low population countries in the test and training data.</p>
+<p>Stratification can be useful in sampling, but there needs to be some justification for limiting the randomness of the sample. The most obvious choices for potential stratification are the major demographics for countries: population, land area, and GDP. If there were some obvious relationship between renewable percentage and these factors, then it would make sense to make sure the test and training data sets had equal proportions of different bins (since the variables are all continuous) of these variables.</p>
+<pre class="r"><code># Simply Linear Model predicting renewable percent with demographics
+basic_model = lm(renewable_percent_2017 ~ X2017_Population_World_Bank + 
+                   X2017_Land_Area_km_2 + X2017_GDP_US_Dollars_World_Bank, data = model_data)
+summary(basic_model)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = renewable_percent_2017 ~ X2017_Population_World_Bank + 
+##     X2017_Land_Area_km_2 + X2017_GDP_US_Dollars_World_Bank, data = model_data)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -0.3331 -0.2732 -0.0830  0.2017  0.6856 
+## 
+## Coefficients:
+##                                   Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)                      3.144e-01  2.408e-02  13.053   &lt;2e-16 ***
+## X2017_Population_World_Bank     -3.990e-11  1.955e-10  -0.204    0.839    
+## X2017_Land_Area_km_2             1.124e-08  1.502e-08   0.748    0.455    
+## X2017_GDP_US_Dollars_World_Bank -1.541e-14  1.714e-14  -0.899    0.370    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.3142 on 191 degrees of freedom
+## Multiple R-squared:  0.00654,    Adjusted R-squared:  -0.009065 
+## F-statistic: 0.4191 on 3 and 191 DF,  p-value: 0.7395</code></pre>
+<pre class="r"><code>remove(basic_model)</code></pre>
+<p>The above linear model makes clear that there is no obvious relationship between these demographic variables and renewable energy percentage. None of the p-values are remotely close to significance. Therefore there is no justification for stratifying the samples based on any of these variables.</p>
+<pre class="r fold-hide"><code># Histogram of training renewable energy
+y.train.df = data.frame(y = y.train)
+y.train_hist = ggplot(data = y.train.df, aes(x = y)) +
+  geom_histogram(alpha = 0.5, binwidth = .1) +
+  labs(x = &quot;Renewable Energy Percentage&quot;, y = &quot;Count&quot;,
+       title = &quot;y.train histogram&quot;) +
+  theme(text = element_text(size = 20),
+    axis.text.y = element_text(angle=90, hjust=1, size = 10),
+    axis.text.x = element_text(size = 10),
+    plot.title = element_text(hjust = 0.5, size = 12),
+    axis.title=element_text(size=10,face=&quot;bold&quot;)) +
+  theme_minimal()
+
+# Histogram of test renewable energy
+y.test.df = data.frame(y = y.test)
+y.test_hist = ggplot(data = y.test.df, aes(x = y)) +
+  geom_histogram(alpha = 0.5, binwidth = .1) +
+  labs(x = &quot;Renewable Energy Percentage&quot;, y = &quot;Count&quot;,
+       title = &quot;y.test histogram&quot;) +
+  theme(text = element_text(size = 20),
+    axis.text.y = element_text(angle=90, hjust=1, size = 10),
+    axis.text.x = element_text(size = 10),
+    plot.title = element_text(hjust = 0.5, size = 12),
+    axis.title=element_text(size=10,face=&quot;bold&quot;)) +
+  theme_minimal()
+
+# Plot Side by side
+plot_grid(y.train_hist,y.test_hist,ncol = 2)</code></pre>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/response_histograms_split-1.png" width="768" /></p>
+<pre class="r fold-hide"><code>remove(y.train.df,y.train_hist,y.test.df,y.test_hist)</code></pre>
+<p>Plots of the histograms for y.train and y.test indicate that the distributions of renewable energy percentage are roughly the same between the training and test data. There is no reasoning to support stratification here, and therefore the random sampling is sufficient for the remainder of the report.</p>
 </div>
 <div id="model-1-regularized-linear-model" class="section level2">
 <h2>Model 1: Regularized Linear Model</h2>
@@ -1186,19 +1267,19 @@ y.test = model_data[-train, ]$renewable_percent_2017</code></pre>
 </div>
 <div id="model-2-regularized-beta-regression-model" class="section level2">
 <h2>Model 2: Regularized Beta Regression Model</h2>
-<p>When fitting a linear model for prediction (or interpretation), the &quot;linear model&quot; (often referred to as &quot;ordinary linear regression&quot;) is often considered the simplest and first choice for a continuous response. However, such model is not alwyas appropriate. The linear model estimates the response directly as a linear combination of the <span class="math inline">\(\mathbf{\beta}\)</span> matrix and <span class="math inline">\(\mathbf{X}\)</span> matrices, with an error matrix as well. This is of the form:</p>
+<p>When fitting a linear model for prediction (or inference), the &quot;ordinary linear regression&quot; is considered one of the simplest and first choices for modeling a continuous response. Such a model is not always appropriate. The linear model estimates the response directly as a linear combination of the <span class="math inline">\(\mathbf{\beta}\)</span> matrix and <span class="math inline">\(\mathbf{X}\)</span> matrices, with an error matrix as well. This is of the form:</p>
 <p><span class="math display">\[ \mathbf{Y} = \mathbf{X}\mathbf{\beta} + \mathbf{\epsilon}\]</span></p>
-<p>where <span class="math inline">\(\mathbf{Y}\)</span> and <span class="math inline">\(\mathbf{\epsilon}\)</span> are <span class="math inline">\(n\times 1\)</span> matrix, <span class="math inline">\(\mathbf{X}\)</span> is a <span class="math inline">\(n\times p\)</span> matrix, and <span class="math inline">\(\mathbf{\beta}\)</span> is a <span class="math inline">\(p\times 1\)</span> matrix. The <span class="math inline">\(\beta\)</span> coefficients are fit using the data with least squares estimates, and the residuals can be analyzed for normality. Such a model clearly assumes additive error. Additionally, it is generally desirable for the errors to be normally distributed (and therefore this can be reffered to as a Gaussian model) for inference purposes, although it is not strictly necessary for estimating the coefficients.</p>
-<p>Practically, issues with the additive error term become apparent when we consider what constraints we may want on <span class="math inline">\(\mathbf{Y}\)</span>. For renewable energy percentages in 2017, we clearly want a model that predicts a percentage, i.e. values between 0 and 1. The simple linear model does not guarentee this: coefficients could be estimated for values less than 0 or greater than 1. Therefore it is appropriate classes of models from the more &quot;general&quot; set of &quot;generalized linear models.&quot; The genearlized linear model allows for the <span class="math inline">\(\mathbf{X}\mathbf{\beta}\)</span> matrix (called the systematic component - this portion must be linear in the <span class="math inline">\(\beta&#39;s\)</span>) to be related to the response via a link function, and incorporates the error into a &quot;random&quot; component.</p>
-<p>The choice of generalized linear model (GLM) depends on what values the response can take on. Logistic regression (technically bernoulli regression) is a form of GLM that applies for binary responses, and uses the logit link function. In this problem, the response is continous. When applying linear models to proportions, it must be determined whether the underlying values are counts or an actual proportion. If they are counts, then binomial regression (bernoulli regression bu <span class="math inline">\(n\)</span> does not have to equal 1) or poisson regression are usually appropriate starting places. In this problem it is a bit unclear whether the values are actually counts divided by a total, or actually proportions. Generally energy is thought of as a continupus value, and not a discrete count. Therefore, the less common beta regression model is likely the most appropriate GLM here [CITE <a href="https://rcompanion.org/handbook/J_02.html" class="uri">https://rcompanion.org/handbook/J_02.html</a>].</p>
-<p>Beta regression assumes the response variable follows a beta distribution.<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> It also requires the response variable to be between 0 and 1, but not exactly 0 or 1. This is a problem for this dataset, as a few renewable percentages are 0 or 1. In order to make use of the model in spite of this, a small ammount of bias is introduced by setting values from the training set that are 0 equal to 0.000001 and values that are 1 equal to 0.999999. The model for a beta regression is as follows:</p>
+<p>where <span class="math inline">\(\mathbf{Y}\)</span> and <span class="math inline">\(\mathbf{\epsilon}\)</span> are <span class="math inline">\(n\times 1\)</span> matrices, <span class="math inline">\(\mathbf{X}\)</span> is a <span class="math inline">\(n\times p\)</span> matrix, and <span class="math inline">\(\mathbf{\beta}\)</span> is a <span class="math inline">\(p\times 1\)</span> matrix. The <span class="math inline">\(\beta\)</span> coefficients are fit via least squares estimates, and the residuals can be analyzed for normality. Such a model assumes additive error. Additionally, it is generally desirable for the errors to be normally distributed for inference purposes, although it is not strictly necessary for estimating the coefficients.</p>
+<p>Practically, issues with the additive error term become apparent when considering what constraints may be appropriate for <span class="math inline">\(\mathbf{Y}\)</span>. For renewable energy percentages, the model should be limited to fitting response values between 0 and 1. The simple linear model does not guarentee this: coefficients could be estimated that result in response values less than 0 or greater than 1. Generalized linear models are the solution to this problem. The genearlized linear model allows for the <span class="math inline">\(\mathbf{X}\mathbf{\beta}\)</span> matrix (called the systematic component - this portion must be linear in the <span class="math inline">\(\beta&#39;s\)</span>) to be related to the response via a link function, and incorporates the error into a &quot;random&quot; component.</p>
+<p>The choice of generalized linear model (GLM) depends on what type of values the response should take. Logistic regression (technically bernoulli regression) is a form of GLM that applies for binary responses, and uses the logit link function. In this problem, the response is continous. When applying linear models to proportions, it is important to distinguish between the response being counts divided by a total, or inherently proportional. If the response is a form of counts, then binomial regression (bernoulli regression but <span class="math inline">\(n\)</span> does not have to equal 1) or poisson regression are usually appropriate starting places. Energy is measured as a continuous value, and not a discrete count. Therefore, the less common beta regression model is the most appropriate GLM here <span class="citation">(Mangiafico 2016)</span>.</p>
+<p>A beta regression model assumes the response variable follows a beta distribution.<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> It also requires the response variable to be between 0 and 1, but not exactly 0 or 1. This is a problem given the renewable energy data set, as a few renewable percentages are 0 or 1. In order to make use of the model in spite of this, a small ammount of bias is introduced to the model by setting values from the training set that are 0 equal to 0.000001 and values that are 1 equal to 0.999999.</p>
 <p><span class="math display">\[g(\mu_i) = \mathbf{X\beta}\]</span></p>
-<p>where the mean percentage, <span class="math inline">\(\mu\)</span> accounts for the randomness and is modeled as a function of the systematic component, <span class="math inline">\(\mathbf{X\beta}\)</span>. <span class="math inline">\(g(.)\)</span> is the link function. CITE[<a href="https://cran.r-project.org/web/packages/betareg/vignettes/betareg.pdf" class="uri">https://cran.r-project.org/web/packages/betareg/vignettes/betareg.pdf</a>]. Different link functions are possible, but the default method for beta regression is typically the logit function, <span class="math inline">\(g(\mu) = log(\frac{\mu}{1-\mu})\)</span>. This results in the model</p>
+<p>The model for a beta regression is above. The mean percentage, <span class="math inline">\(\mu\)</span> accounts for the randomness and is modeled as a function of the systematic component, <span class="math inline">\(\mathbf{X\beta}\)</span>. <span class="math inline">\(g(.)\)</span> is the link function <span class="citation">(Cribari-Neto and Zeileis, n.d.)</span>. Different link functions are possible, but the typical method for beta regression is the logit function, <span class="math inline">\(g(\mu) = log(\frac{\mu}{1-\mu})\)</span>. This results in the model</p>
 <p><span class="math display">\[log\bigg(\frac{\mu_i}{1-\mu_i}\bigg) = \mathbf{X\beta}\]</span></p>
-<p>This looks similar logistic (bernoulli) regression. However the beta regression model incorporates a second parameter as well; the precision <span class="math inline">\(\phi\)</span> sometimes referred to as the dispersion <span class="math inline">\(\phi^{-1}\)</span>. The precision can be constant or modeled. CITE[<a href="https://cran.r-project.org/web/packages/betareg/vignettes/betareg.pdf" class="uri">https://cran.r-project.org/web/packages/betareg/vignettes/betareg.pdf</a>]. In the package used in this project it is fit using a logit link as well and is modeled to be approximately 1, see below.</p>
-<p>There is a computation problem related to fitting this model in R. Fitting this model is generally done using the  package. However as outlined in the purpose and methods section, this report seeks to fit sparse models using some form of regularization, since there are approximately 30 predictors. The  does not have a regularization option, and the  package does not have a beta distribution option.<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a> Of existing packages, the  was deemed to provide a modeling technique most appropriate given the goals of the project.[CITE <a href="https://arxiv.org/pdf/1909.11784.pdf" class="uri">https://arxiv.org/pdf/1909.11784.pdf</a>]</p>
-<p>Information of the  package can be found here CITE[<a href="https://arxiv.org/pdf/1909.11784.pdf" class="uri">https://arxiv.org/pdf/1909.11784.pdf</a>] and here <a href="http://www.bamlss.org/" class="uri">http://www.bamlss.org/</a>.  stands for &quot;Bayesian additive models for location, scale and shape.&quot; CITE[<a href="https://arxiv.org/pdf/1909.11784.pdf" class="uri">https://arxiv.org/pdf/1909.11784.pdf</a>] The package appears very powerful and capable of bayesian generalized additive models. For the purposes of this report, only a generalized linear model is needed. Instead of maximum likelihood estimation to estimate the parameters, a bayesian approach is implemented, with prior distributions assigned to the <span class="math inline">\(\beta&#39;s\)</span>.CITE[<a href="https://arxiv.org/pdf/1909.11784.pdf" class="uri">https://arxiv.org/pdf/1909.11784.pdf</a> page 12] The package also automatically implements a lasso-type penalty, inducing regularization and setting some of the coefficients to 0, thus creating a sparse model. CITE[<a href="https://arxiv.org/pdf/1909.11784.pdf" class="uri">https://arxiv.org/pdf/1909.11784.pdf</a> page 9].</p>
-<p>Note that the package uses BIC (Bayesian Information Criterion) to select the optimal model. This is different than the other methods in this report, which rely on cross validation. To the best of the authors's knowledge, a simple ti implement cross-validation approach is not available for the  package.</p>
+<p>This looks similar logistic (bernoulli) regression. However the beta regression model incorporates a second parameter as well; the precision <span class="math inline">\(\phi\)</span>, sometimes referred to as the dispersion, <span class="math inline">\(\phi^{-1}\)</span>. The precision can be constant or modeled <span class="citation">(Cribari-Neto and Zeileis, n.d.)</span>. In the package used in this project the dispersion is fit using a logit link as well and is estimated to be approximately 1, see below.</p>
+<p>There is a computation problem related to fitting a beta regression model in R. Fitting this model is generally done using the betareg package. This report seeks to fit sparse models using some form of regularization, since there are approximately 30 predictors. The betareg package does not have a regularization option, and the glmnet package does not have a beta distribution option.<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a> Of existing packages, the bamlss package was deemed to provide a modeling technique most appropriate given the goals of the project <span class="citation">(Umlauf et al. 2019)</span>.</p>
+<p>Information for the bamlss package can be found here <span class="citation">(Umlauf et al. 2019)</span> and here <a href="http://www.bamlss.org/" class="uri">http://www.bamlss.org/</a>. bamlss stands for &quot;Bayesian additive models for location, scale and shape.&quot; The package is very powerful and is capable of bayesian generalized additive models. For the purposes of this report, only a generalized linear model is needed. Instead of maximum likelihood estimation to estimate the parameters, a bayesian approach is implemented, with prior distributions assigned to the <span class="math inline">\(\beta&#39;s\)</span> <span class="citation">(Umlauf et al. 2019, 12)</span>. The package also automatically implements a lasso-type penalty, setting some of the coefficients to 0. This creates a sparse model <span class="citation">(Umlauf et al. 2019, 9)</span>.</p>
+<p>Note that the package uses BIC (Bayesian Information Criterion) to select the optimal model. This is different than the other methods in this report, which rely on cross validation error to fit the shrinkage parameters. To the best of this report's authors's knowledge, a simple to implement cross validation approach is not available for the bamlss package.</p>
 <pre class="r fold-show"><code>## First, set the seed for reproducibly.
 set.seed(42)
 
@@ -1215,7 +1296,6 @@ beat_regression_model = y.train ~ X2017_Population_World_Bank + X2017_Land_Area_
   CITES + Convention_on_Biological_Diversity + Kyoto__Protocol + Montreal_Protocol + Paris_Agreement + Ramsar_Convention + 
   Rotterdam_Convention + Stockholm_Convention + UN_Convention_on_the_Law_of_the_Sea + UN_Convention_to_Combat_Desertification +
   UN_Framework_Convention_on_Climate_Change + World__Heritage_Convention
-  # + energy_supply_2017
 
 ## Estimate model.
 ## The data is input in matrix form
@@ -1223,131 +1303,8 @@ beta_model = bamlss(beat_regression_model, family = &quot;beta&quot;,
                     data = cbind(y.train,x.train), 
                     optimizer = lasso, criterion = &quot;BIC&quot;, 
                     n.iter = 12000, burnin = 2000, thin = 10)</code></pre>
-<pre><code>## BIC -236.799 edf 32.000 lambda 1000.0 iteration   1
-## BIC -236.799 edf 32.000 lambda 869.74 iteration   2
-## BIC -236.799 edf 32.000 lambda 756.46 iteration   3
-## BIC -236.799 edf 32.000 lambda 657.93 iteration   4
-## BIC -236.799 edf 32.000 lambda 572.23 iteration   5
-## BIC -236.799 edf 32.000 lambda 497.70 iteration   6
-## BIC -236.799 edf 32.000 lambda 432.87 iteration   7
-## BIC -236.799 edf 32.000 lambda 376.49 iteration   8
-## BIC -236.799 edf 32.000 lambda 327.45 iteration   9
-## BIC -236.799 edf 32.000 lambda 284.80 iteration  10
-## BIC -236.799 edf 32.000 lambda 247.70 iteration  11
-## BIC -236.799 edf 32.000 lambda 215.44 iteration  12
-## BIC -236.799 edf 32.000 lambda 187.38 iteration  13
-## BIC -236.799 edf 32.000 lambda 162.97 iteration  14
-## BIC -236.799 edf 32.000 lambda 141.74 iteration  15
-## BIC -236.799 edf 32.000 lambda 123.28 iteration  16
-## BIC -236.799 edf 32.000 lambda 107.22 iteration  17
-## BIC -236.799 edf 32.000 lambda 93.260 iteration  18
-## BIC -236.799 edf 32.000 lambda 81.113 iteration  19
-## BIC -236.799 edf 32.000 lambda 70.548 iteration  20
-## BIC -236.799 edf 32.000 lambda 61.359 iteration  21
-## BIC -236.799 edf 32.000 lambda 53.367 iteration  22
-## BIC -236.799 edf 32.000 lambda 46.415 iteration  23
-## BIC -236.799 edf 32.000 lambda 40.370 iteration  24
-## BIC -236.799 edf 32.000 lambda 35.111 iteration  25
-## BIC -236.799 edf 32.000 lambda 30.538 iteration  26
-## BIC -236.799 edf 32.000 lambda 26.560 iteration  27
-## BIC -236.799 edf 32.000 lambda 23.101 iteration  28
-## BIC -236.799 edf 32.000 lambda 20.092 iteration  29
-## BIC -236.799 edf 32.000 lambda 17.475 iteration  30
-## BIC -236.799 edf 32.000 lambda 15.199 iteration  31
-## BIC -236.799 edf 32.000 lambda 13.219 iteration  32
-## BIC -236.799 edf 32.000 lambda 11.497 iteration  33
-## BIC -236.799 edf 32.000 lambda 10.000 iteration  34
-## BIC -236.799 edf 32.000 lambda 8.6975 iteration  35
-## BIC -236.799 edf 32.000 lambda 7.5646 iteration  36
-## BIC -236.799 edf 32.000 lambda 6.5793 iteration  37
-## BIC -236.799 edf 32.000 lambda 5.7224 iteration  38
-## BIC -236.799 edf 32.000 lambda 4.9770 iteration  39
-## BIC -236.799 edf 32.000 lambda 4.3288 iteration  40
-## BIC -236.799 edf 32.000 lambda 3.7649 iteration  41
-## BIC -236.799 edf 32.000 lambda 3.2745 iteration  42
-## BIC -236.799 edf 32.000 lambda 2.8480 iteration  43
-## BIC -236.799 edf 32.000 lambda 2.4771 iteration  44
-## BIC -236.799 edf 32.000 lambda 2.1544 iteration  45
-## BIC -236.799 edf 32.000 lambda 1.8738 iteration  46
-## BIC -236.799 edf 32.000 lambda 1.6298 iteration  47
-## BIC -236.799 edf 32.000 lambda 1.4175 iteration  48
-## BIC -236.799 edf 32.000 lambda 1.2328 iteration  49
-## BIC -236.799 edf 32.000 lambda 1.0723 iteration  50
-## BIC -236.799 edf 32.000 lambda 0.9326 iteration  51
-## BIC -236.799 edf 32.000 lambda 0.8111 iteration  52
-## BIC -236.799 edf 32.000 lambda 0.7055 iteration  53
-## BIC -236.799 edf 32.000 lambda 0.6136 iteration  54
-## BIC -236.799 edf 32.000 lambda 0.5337 iteration  55
-## BIC -236.799 edf 32.000 lambda 0.4642 iteration  56
-## BIC -236.799 edf 32.000 lambda 0.4037 iteration  57
-## BIC -236.799 edf 32.000 lambda 0.3511 iteration  58
-## BIC -236.799 edf 32.000 lambda 0.3054 iteration  59
-## BIC -236.799 edf 32.000 lambda 0.2656 iteration  60
-## BIC -236.799 edf 32.000 lambda 0.2310 iteration  61
-## BIC -236.799 edf 32.000 lambda 0.2009 iteration  62
-## BIC -236.799 edf 32.000 lambda 0.1748 iteration  63
-## BIC -236.799 edf 32.000 lambda 0.1520 iteration  64
-## BIC -236.799 edf 32.000 lambda 0.1322 iteration  65
-## BIC -236.799 edf 32.000 lambda 0.1150 iteration  66
-## BIC -236.799 edf 32.000 lambda 0.1000 iteration  67
-## BIC -236.799 edf 32.000 lambda 0.0870 iteration  68
-## BIC -236.799 edf 32.000 lambda 0.0756 iteration  69
-## BIC -236.799 edf 32.000 lambda 0.0658 iteration  70
-## BIC -236.799 edf 32.000 lambda 0.0572 iteration  71
-## BIC -236.799 edf 32.000 lambda 0.0498 iteration  72
-## BIC -236.799 edf 32.000 lambda 0.0433 iteration  73
-## BIC -236.799 edf 32.000 lambda 0.0376 iteration  74
-## BIC -236.799 edf 32.000 lambda 0.0327 iteration  75
-## BIC -236.799 edf 32.000 lambda 0.0285 iteration  76
-## BIC -236.799 edf 32.000 lambda 0.0248 iteration  77
-## BIC -236.799 edf 32.000 lambda 0.0215 iteration  78
-## BIC -236.799 edf 32.000 lambda 0.0187 iteration  79
-## BIC -236.799 edf 32.000 lambda 0.0163 iteration  80
-## BIC -236.799 edf 32.000 lambda 0.0142 iteration  81
-## BIC -236.799 edf 32.000 lambda 0.0123 iteration  82
-## BIC -236.799 edf 32.000 lambda 0.0107 iteration  83
-## BIC -236.799 edf 32.000 lambda 0.0093 iteration  84
-## BIC -236.799 edf 32.000 lambda 0.0081 iteration  85
-## BIC -236.799 edf 32.000 lambda 0.0071 iteration  86
-## BIC -236.799 edf 32.000 lambda 0.0061 iteration  87
-## BIC -236.799 edf 32.000 lambda 0.0053 iteration  88
-## BIC -236.799 edf 32.000 lambda 0.0046 iteration  89
-## BIC -236.799 edf 32.000 lambda 0.0040 iteration  90
-## BIC -236.799 edf 32.000 lambda 0.0035 iteration  91
-## BIC -236.799 edf 32.000 lambda 0.0031 iteration  92
-## BIC -236.799 edf 32.000 lambda 0.0027 iteration  93
-## BIC -236.799 edf 32.000 lambda 0.0023 iteration  94
-## BIC -236.799 edf 32.000 lambda 0.0020 iteration  95
-## BIC -236.799 edf 32.000 lambda 0.0017 iteration  96
-## BIC -236.799 edf 32.000 lambda 0.0015 iteration  97
-## BIC -236.799 edf 32.000 lambda 0.0013 iteration  98
-## BIC -236.799 edf 32.000 lambda 0.0011 iteration  99
-## BIC -236.799 edf 32.000 lambda 0.0010 iteration 100
-## elapsed time:  0.49sec
-## Starting the sampler...
-## 
-## |                    |   0% 28.78sec
-## |*                   |   5% 28.42sec  1.50sec
-## |**                  |  10% 27.20sec  3.02sec
-## |***                 |  15% 25.91sec  4.57sec
-## |****                |  20% 24.84sec  6.21sec
-## |*****               |  25% 23.03sec  7.68sec
-## |******              |  30% 21.33sec  9.14sec
-## |*******             |  35% 19.77sec 10.65sec
-## |********            |  40% 18.17sec 12.11sec
-## |*********           |  45% 16.61sec 13.59sec
-## |**********          |  50% 15.08sec 15.08sec
-## |***********         |  55% 13.56sec 16.57sec
-## |************        |  60% 12.03sec 18.05sec
-## |*************       |  65% 10.53sec 19.55sec
-## |**************      |  70%  9.02sec 21.05sec
-## |***************     |  75%  7.52sec 22.57sec
-## |****************    |  80%  6.02sec 24.07sec
-## |*****************   |  85%  4.52sec 25.59sec
-## |******************  |  90%  3.01sec 27.07sec
-## |******************* |  95%  1.50sec 28.58sec
-## |********************| 100%  0.00sec 30.07sec</code></pre>
-<pre class="r fold-show"><code>## Summary of the model
+<p>The model is fit above. Since the bamlss function takes a bayesian approach, the <span class="math inline">\(\beta&#39;s\)</span> are modeled via posterior distributions. This involves sampling the posterior distribution using monte carlo sampling. The &quot;n.iter&quot;, &quot;burnin&quot;, and &quot;thin&quot; options relate to this sampling. The selected values were defaults suggested in a Vignette on the bamlss wepage <span class="citation">(Umlauf et al. 2019)</span>.</p>
+<pre class="r"><code>## Summary of the model
 summary(beta_model)</code></pre>
 <pre><code>## 
 ## Call:
@@ -1456,7 +1413,7 @@ summary(beta_model)</code></pre>
 ## Sampler summary:
 ## -
 ## DIC = -319.5839 logLik = 179.1992 pd = 38.8144
-## runtime = 30.077
+## runtime = 27.925
 ## ---
 ## Optimizer summary:
 ## -
@@ -1465,10 +1422,9 @@ summary(beta_model)</code></pre>
 ## ---
 ## nobs = 156
 ## ---</code></pre>
-<p>The model is fit above. There are two important notes here. First, the energy_supply_2017 variable appears to cause some issue in fitting the model and is excluded. Secondly, since the bamlss function takes a bayesian approach, the <span class="math inline">\(\beta&#39;s\)</span> are modeled with posterior distributions. This involves sampling the posterior distribution using mote carlo estimation. The &quot;n.iter&quot;, &quot;burnin&quot;, and &quot;thin&quot; options relate to the sampling and the selected values were defaults suggested in a Vignette on the bamlss wepage.[<a href="https://bayesr.r-forge.r-project.org/articles/glm.html" class="uri">https://bayesr.r-forge.r-project.org/articles/glm.html</a>]</p>
-<p>The above model summary indicates a few important pieces of information. First, it is staed that <span class="math inline">\(\mu\)</span> and the variance were fit with the logit link function. The variance parameter ended up being 1. Samples from the posterior distribution of each <span class="math inline">\(\beta\)</span> coefficient are available. Note that if they 95% posterior credible interval for each parameter contains 0, the parameter coefficeint is set to 0.</p>
-<p>The world bank demographic variables, the emissions, and the energy supply are all set to 0 due to regularization. The value for the paris agreement <span class="math inline">\(\beta\)</span> is largest in absolute value. <span class="math inline">\(e^{\beta_{Paris Agreement}} = 1.1096\)</span>, which can be interpreted as a one year increase in a country signing the paris agreement results in a 11/% decrease in the ratio of renewable energy versus not renewable energy for the country (it is a change in the ratio since the logit link models odds, not percentages). Intuitively, this seems reasonable. Countries that signed the Paris Agreement later would like,ly be using a smaller percentage of renewable energy. Many of the other convention coefficients are non-zero and negative. For consumption related variables and mining, these are negative as well. This suggests that larger consumption of natural resources predicts less investment, which also makes sense. On the other hand, predicted areas (marine and terrestrial) are positive. This also makes sense, as countries that protect more of their land an resources may have a more environmental and sustainable outlook and be more invested in renewables energy.</p>
-<p>Before using the model for prediction, it is worth briefly evaluating whether it is an appropriate model with some diagnostic checking (the diagnostic checking is relatively limited for this report, as the main purpose of this report prediction). Residual plots are shown below:</p>
+<p>The above model summary indicates a few important pieces of information. First <span class="math inline">\(\mu\)</span> and the variance were fit with the logit link function. The variance parameter ended up being estimated as 1. Samples from the posterior distribution of each <span class="math inline">\(\beta\)</span> coefficient are available. Note that if the 95% posterior credible interval for each parameter contains 0, the parameter coefficeint is set to 0.</p>
+<p>The world bank demographic, emissions, and energy supply variables are all set to 0 due to regularization. The value for the paris agreement <span class="math inline">\(\beta\)</span> is largest in absolute value. <span class="math inline">\(e^{\beta_{Paris Agreement}} = 0.9012\)</span>, which can be interpreted as a one year increase in a country signing the paris agreement results in a 10% decrease in the ratio of renewable energy versus non renewable energy for the country (it is a change in the ratio since the logit link models odds, not percentages). Intuitively, this seems reasonable. Countries that signed the Paris Agreement later would possibly be less motivated to implement renewable energy. Many of the other convention coefficients are non-zero and negative. Consumption related variables and mining are negative as well. This suggests that larger consumption of natural resources predicts less presence of renewable energy, which also seems a reasonable relationship. On the other hand, predicted areas (marine and terrestrial) are positive. Possibly countries that protect more of their land and natural resources may have a more environmental and sustainable outlook and be more invested in renewables energy.</p>
+<p>It is worth briefly evaluating whether the beta GLM is an appropriate model with some diagnostic checking (the diagnostic checking is relatively limited, as the main purpose of this report is prediction). Residual plots are shown below:</p>
 <pre class="r fold-hide"><code># Model Residuals and Fitted Values
 beta_model_residuals = residuals(beta_model, type = c(&quot;quantile&quot;))
 beta_model_fitted = fitted(beta_model)$mu[2]
@@ -1510,9 +1466,8 @@ plot_grid(histogram_beta_residuals,qq_beta_residuals, resid_vs_fit_model,
           hjust = -.75)</code></pre>
 <pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
 <p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/beta_residuals,%20-1.png" width="768" /></p>
-<p>[COME BACK AND DO OUTLIER PLOT IF TIME]</p>
-<p>Quantile residuals are provided by the  package and are used here per the reccomendation from the bamlss website [CITE <a href="https://bayesr.r-forge.r-project.org/articles/glm.html" class="uri">https://bayesr.r-forge.r-project.org/articles/glm.html</a>]. The diagnostic plots overall suggest the beta regression model is an acceptable choice for the data, if not quite perfect. The histogram and the quantile-quantile plot (QQ Plot) both suggest the residuals are very roughly normally distributed. The histogram roughly looks like a normal distribution. The normal qunatiles and quantiles of the residuals roughly track, with some rightward skew. This suggests there are some outliers in the residuals on the right-hand side of the distribution (in the QQ Plot, the blue dots would track the black line exactly if the residuals were normally distributed). Finally, the residuals versus fitted plot shows the relationship between the residuals and the predicted values of the training data. Note the fitted values here are the log odds, and not in terms of percentages (as specified by the model). There should be now obvious relationship or heteroskedasticity. The plot suggests rough randomness in the relationship. Overall, the plots suggest that the model does not predict high renewable energy percentages particularly well, but the choice of a beta regression model seems somewhat justified.</p>
-<p>Given the model is adequate, prediction is done using the test data. Note that predicted values are available for the posterior mean and variance parameters, but only the predicted value is analyzed here (not the uncertainty around said prediction).</p>
+<p>The diagnostic plots suggest the beta regression model is an acceptable choice for modeling the data, if not quite perfect. Quantile residuals are produced as output by the bamlss package and are used here per the reccomendation from the bamlss authors <span class="citation">(Umlauf et al. 2019, see Vignette)</span>. The residuals should be normally distributed if the model is a good fit for the data. The histogram and the quantile-quantile plot (Q-Q Plot) both suggest the residuals are very roughly normally distributed. The histogram roughly looks like a normal distribution. The normal quantiles and the quantiles of the residuals roughly track, with some rightward skew. This suggests there are some outliers in the residuals on the right-hand side of the distribution (in the QQ Plot, the blue dots would track the black line exactly if the residuals were normally distributed). Finally, the residuals versus fitted plot shows the relationship between the residuals and the predicted values of the training data. Note the fitted values here are the log odds, and not in terms of percentages. There should be no obvious relationship or heteroskedasticity for the model to be appropriate. The plot suggests randomness in the relationship between the residuals and fitted values. Overall, the plots suggest the choice of a beta regression as the GLM model is justified.</p>
+<p>Given the model is adequate, prediction is performed using the test data. Note that predicted values are available for the posterior mean and variance parameters, but only the predicted value is analyzed here.</p>
 <pre class="r fold-show"><code># Use the predict function and the test data
 beta.pred = predict(beta_model, newdata = x.test, type = &quot;parameter&quot;)$mu
 
@@ -1522,8 +1477,14 @@ beta_abs_e = mean(abs(y.test-beta.pred))
 
 # Calculate Bias
 beta.fit = predict(beta_model, newdata = x.train, type = &quot;parameter&quot;)$mu
-beta_bias = mean(beta.fit - y.train)</code></pre>
-<p>The mean squared error is .0752 and the mean absolute error is .2138. That means on average, the prediction was off by 21.38%. As mentioned in the methods section, in the case of proportion data 33% mean absolute error is the expected performance of an uninformed prediction. [NEED TO ADD THIS TO METHODS]. This implies that the sparse beta regre model does provide some help in prediction, but being off by 21.38% on average is still fairly large.</p>
+beta_bias = mean(beta.fit - y.train)
+
+# Output
+paste0(&quot;Beta GLM RMSE: &quot;,round(beta_rmse,4), &quot;; &quot;,
+       &quot;Beta GLM MAE: &quot;,round(beta_abs_e,4), &quot;; &quot;,
+       &quot;Beta GLM Bias: &quot;,round(beta_bias,6))</code></pre>
+<pre><code>## [1] &quot;Beta GLM RMSE: 0.2743; Beta GLM MAE: 0.2138; Beta GLM Bias: 0.052371&quot;</code></pre>
+<p>The root mean squared error is .2743 and the mean absolute error is .2138. That means on average, the prediction was off by 21.38%. As mentioned in the methods section, in the case of proportion data 33% mean absolute error is the expected performance of an uninformed prediction. This implies that the sparse beta regression model does provide some utility in prediction. But being off by 21.38% on average is still fairly large. The bias of the predicted values and training values is .05237.</p>
 <pre class="r fold-hide"><code># Create Data Frame with Countries, Predicted Values
 # And Actual Values
 beta_predict_graph_data = data.frame(observation = c(1:39),
@@ -1553,7 +1514,7 @@ ggplot(data = beta_predict_graph_data, aes(x = observation, label = Country)) +
   theme(legend.title=element_text(size=20), legend.text=element_text(size=14)) +
   theme_minimal()</code></pre>
 <p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/beta_prediction_graph-1.png" width="768" /></p>
-<p>The above graph shows the difference between the predicted values and the actual values for renewable energy percentage in 2017. Generally, the largest source of error appears to come from countries that have actual renewable percentages close to or greater than .7.</p>
+<p>The above graph shows the difference between the predicted values and the actual values for renewable energy percentage in 2017. The largest sources of error appear to come from countries that have actual renewable percentages close to or greater than .7.</p>
 <pre class="r fold-hide"><code># Create Dataframe with Absolute Difference
 # Arrange to be in Order
 beta_predict_analysis_1 = beta_predict_graph_data %&gt;%
@@ -1657,7 +1618,7 @@ kable(rbind(head(beta_predict_analysis_1,5),
 </tr>
 </tbody>
 </table>
-<p>The above table confirms that the model performs worst at predicting high and 0 percentages. Interestingly, Palau was predicted to be the highest renewable percentage, but in fact is 0. Double checking the data, Palau having near zero renewable energy is confirmed by another source: the U.S. department of energy reported Palau's Electricity generation mix to be 97.5% diesel in 2020 and 2.5% solar [CITE <a href="https://www.energy.gov/sites/default/files/2020/09/f79/ETI-Energy-Snapshot-Palau_FY20.pdf" class="uri">https://www.energy.gov/sites/default/files/2020/09/f79/ETI-Energy-Snapshot-Palau_FY20.pdf</a>]. Bhutan's high renewable percentage is due to its hydropower production that it both relies on for electricity and as a major export [NEED TO CITE THIS]. So while the model succeeds in predicting values between 0 and 1, it struggles to predict large percentages or percentages close to 0.</p>
+<p>The above table confirms that the model performs worst at predicting high and 0 percentages. Interestingly, Palau was predicted to be the highest renewable percentage, but in fact is 0. Double checking the data, Palau's low renewable energy percentage is confirmed by another source: the U.S. Department of Energy reported Palau's Electricity generation mix to be 97.5% diesel in 2020 and 2.5% solar <span class="citation">(Laboratory 2020)</span>. Lesotho is also predicted very poorly. Generally, the model is somewhat successful in predicting values between 0 and .7, but struggles to predict large percentages or percentages close to 0.</p>
 </div>
 <div id="model-3-random-forest" class="section level2">
 <h2>Model 3: Random Forest</h2>
@@ -2089,7 +2050,8 @@ remove(boost_predict_graph_data,boost_tree_model)</code></pre>
 </div>
 <div id="limitations-and-future-work" class="section level2">
 <h2>Limitations and Future Work</h2>
-<p>The Inland Water Resources and Waste data, available from the Global Environmental Indicators data set, were not considered due to time constraints. Both folders have a large number of .csv's and corresponding data. Future work could be done to include indicators from these areas and determine if they substantial improve the prediction accuracy of these models.</p>
+<p>The Inland Water Resources and Waste data, available from the Global Environmental Indicators data set, were not considered due to time constraints. Both folders have a large number of .csv's and corresponding data. Some countries with poor predictions, such as Lesotho and Bhutan, have high levels of renewable energy percentage and have major hydroelectric resources. Including inland water data predictors may vastly improve the predictions. Ideally all predictors from these files would be considered in the same data cleaning, limiting, and interpolation process. If they have sufficient levels of non missing information, they would be included in the sparsity inducing models used in this report.</p>
+<p>The beta regression model relied on the bamlss package to fit the model, and made use of the BIC statistic to optimize the shrinkage parameter. After some searching, the author of this report did not find an R package that implemented cross validation to optimize a shrinkage parameter for a beta regression model. Some sort of extension of the glmnet package for beta regression could be an interesting project. On the other hand, the bamlss package is incredibly powerful and the bayesian approach could provide for some interesting extensions as well. Since the posterior distributions are sampled for the <span class="math inline">\(\beta&#39;s\)</span>, it would be feasible to quantify the uncertainty regarding the predictions - i.e., produce a range of potential values for each prediction. If the range included the true value (for posterior interval level), it would provide more evidence the model is predictive.</p>
 <p>[Boosted Trees Low Bias - could warrant further work. Interesting relationship between NOx and Renewable Energy Percentage in Boosted Tree]</p>
 </div>
 </div>
@@ -2102,6 +2064,9 @@ remove(boost_predict_graph_data,boost_tree_model)</code></pre>
 <div id="ref-IndicatorData">
 <p>Bhatia, Ruchi. 2021. “Global Environmental Indicators.” UNSD Global Environment Statistics.</p>
 </div>
+<div id="ref-betainR">
+<p>Cribari-Neto, Francisco, and Achim Zeileis. n.d. “Beta Regression in R.” Cran.R.</p>
+</div>
 <div id="ref-WorldBankData">
 <p>DataBank. n.d. “Data.” World Bank; Online.</p>
 </div>
@@ -2111,8 +2076,17 @@ remove(boost_predict_graph_data,boost_tree_model)</code></pre>
 <div id="ref-ESL">
 <p>Hastie, Trevor, Robert Tibshirani, and Jerome Friedman. 2017. <em>The Elements of Statistical Learning: Data Mining, Inference, and Prediction</em>. 2nd ed. Springer.</p>
 </div>
+<div id="ref-Palau">
+<p>Laboratory, National Renewable Energy. 2020. “Palau: Energy Snapshot.” U.S. Department of Energy.</p>
+</div>
+<div id="ref-Mangiafico">
+<p>Mangiafico, Salvatore S. 2016. “Beta Regression for Percent and Proportion Data.” Summary; Analysis of Extension Program Evaluation in R.</p>
+</div>
 <div id="ref-gbm">
 <p>Ridgeway, Greg. 2020. “Generalized Boosted Models: A Guide to the Gbm Package.” Cran.R.</p>
+</div>
+<div id="ref-bamlss">
+<p>Umlauf, Nikolaus, Nadja Klein, Thorsten Simon, and Achim Zeileis. 2019. “Bamlss: A Lego Toolbox for Flexible Bayesian Regression (and Beyond).” Universität Innsbruck; Humboldt Universität zu Berlin.</p>
 </div>
 <div id="ref-RenewablEenergyProductionxlsx">
 <p>UNSD. 2020. “Renewable Energy Production.” DC2-1516, 2 United Nations Plaza New York, New York 10017, USA: United Nations Statistics Division.</p>
