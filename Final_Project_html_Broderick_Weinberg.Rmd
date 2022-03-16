@@ -1,11 +1,17 @@
 ---
-title: "PSTAT 231 Final Broderick-Weinberg"
+title: "Predicting Countries' Renewable Energy Percentage with Environmental Indicators"
+subtitle: "PSTAT 231 Final Broderick-Weinberg"
 author: "Hailey Broderick and Callum Weinberg"
 date: "March 11, 2022"
 output:
+  rmdformats::downcute:
+    downcute_theme: "chaos"
+    code_folding: show
+    self_contained: no
   html_document:
     code_folding: show
     self_contained: no
+    theme: paper
   html_notebook:
     code_folding: show
 bibliography: works_cited.bib
@@ -33,7 +39,9 @@ The structure of the report is as follows:
 * Introduction
     + Background
     + Data: Global Environmental Indicators
-    + Purpose and Methods
+    + Purpose
+    + Methods
+    + Measuring Error and Bias
 * Coding Requirements
     + Libraries
     + Functions
@@ -82,29 +90,54 @@ While this report primarily focuses on using the Global Environmental Indicators
 
 Along with their online, original-source, availability, all the above listed data is available at https://github.com/leoncw/PSTAT231_Final in the "Raw_Data" folder. The World Bank variables were manually copied into the "02_final_crosswalk.csv" file
 
-## Purpose and Methods
+## Purpose
 
-The primary purpose of this report is to predict renewable energy percentages for countries in 2017 using Global energy indicators provided in the Global Environmental Indicators data set. This report primarily focuses on predictive statistics (although there may be some comments related to inferential statistics). The idea is that certain environmental indicators may be able to predict the renewable energy percentage a country exhibits.
+The primary purpose of this report is to predict renewable energy percentages for countries in 2017 using Global energy indicators provided in the Global Environmental Indicators data set. This report primarily focuses on predictive statistics (although there may be some comments related to inferential statistics). The motivation is that certain environmental indicators may be able to predict the renewable energy percentage a country exhibits. The predictions are quantitatively assessed, and the performance of the models are compared.
 
-Using countries as observations implies that any data set with a large number of predictors will almost certainly deal with the statistical problem of $p$ not being significantly larger than $n$ (p being predictors, and n being number of observations). Therefore this project will focus on fitting sparsity-induding predictive models. Sparsity inducing models generally "shrink" parameters to either small values (e.g. ridge regression) or 0 (e.g. lasso regression) so that effectively, $p$ is decreased. Such models often allow some bias to decrease the variance that would otherwise be inherent to a model with relatively large $p$. Parametric and Non-parametric models are included. 
+## Methods
+Since there are only approximately 200 countries, this project deals with the statistical problem of $p$ not being significantly larger than $n$ (p being predictors, and n being number of observations). Therefore this project focuses on fitting sparsity-inducing predictive models. Sparsity inducing models generally "shrink" parameters to either small values (e.g. ridge regression) or 0 (e.g. lasso regression) so that effectively, $p$ is decreased. Such models often allow some bias in order to decrease the variance that would otherwise be inherent to a model with relatively large $p$. Parametric and non-parametric models are included. 
 
 All of the selected models are supervised learning models. The models are trained on a subset of the data (called the "training set") and are validated with cross-validation (see Training and Test Data section for further discussion), with one exception (see Model 2). The predictive power of the models is measured using a test training set. The model error is the primary metric for measuring the success of prediction. Error is generally measured using a loss function. Renewable energy percentage is a continuous, numeric, variable bounded by 0 and 1. Therefore the two loss functions used are based on absolute loss and quadratic loss.
 
-The following applies for reported renewable energy percentage $y_i$ (for country $i$) and \textbf{predicted} renewable energy percentage $\hat{y_i}$. Mean Absolute Error (MAE), which is a form of absolute loss, is defined as:
-
-$$MAE = \frac{\sum_{i = 1}^{n}|\hat{y_i}-y_i|}{n}$$
+## Measuring Error and Bias
+The following applies for observed renewable energy percentage $y_i$ (for country $i$) and predicted renewable energy percentage $\hat{y_i}$.
 
 Root Mean Square Error (RMSE), which is a form of quadratic loss, is defined as:
-
 $$RMSE = \sqrt{\frac{\sum_{i = 1}^{n}(\hat{y_i}-y_i)^2}{n}}$$
 
-RMSE is the most commonly used metric in comparing the relative accuracy of predictive models. However, MAE has a very nice interpreation in this project. Since percentages are bounded by 0 and 1, the MAE is easily interpreted as the average percentage miss in either direction for the set of predictions. So if the $MAE = .10$ for a model and a specific test data set, then the predictions on average were .1% away from the true percentages.
+RMSE is the most commonly used metric in comparing the relative accuracy of predictive models. Mean Absolute Error (MAE), which is a form of absolute loss, is defined as:
+$$MAE = \frac{\sum_{i = 1}^{n}|\hat{y_i}-y_i|}{n}$$
+RMSE and MAE are typically measured on the test data (or validation data), i.e. $y_i \in \{y_{test}\}$.
+
+MAE is particularly useful in evaluating the predictions made in this report. Since percentages are bounded by 0 and 1, the MAE is the average percentage miss in either direction for the set of predictions. So if the $MAE = .10$ for a model and a specific test data set, then the predictions on average were .1% away from the true percentages.
+
+Additionally, MAE implies a threshold for useful models for a response bounded by 0 and 1. If no distributional information is assumed about the response (i.e. set an uninformed prior distribution for the response, which would be the uniform distribution) then the MAE of a completely naive predictor would be roughly .33. In other words, (conditional on nothing being known about renewable energy percentage) if we randomly generated values between 0 and 1 from a uniform distribution, we would expect the MAE for a large sample size to be about .33. An empircal example of this is shown in the code above.
+
+```{r mae_analysis}
+# Define two samples from Uniform distribution
+set.seed(42)
+sample_1 = runif(100000,0,1)
+sample_2 = runif(100000,0,1)
+
+# Calculate MAE
+mean(abs(sample_1-sample_2))
+```
+
+This sets a limit on what a useful model can be. If a model has an MAE of .4 for example, then we could do better by just guessing. Alternatively, any model with MAE substantially below .33 implies the model is more useful than random guessing.
+
+Finally, the Bias of the model is considerd. Bias is defined as:
+
+$$Bias = \frac{\sum_{i = 1}^{n}\hat{y_i}-y_i}{n}$$
+Unlike MAE and RMSE, bias is measured using the training data, i.e. $y_i \in \{y_{train}\}$. Effectively, it measures how close the predicted values are on average to the values used to fit them. By effectively having a large number of predictors (e.g. $n$ fitting polynomial terms in a Generalized Additive Model), it is often possible to get the bias close to 0. This generally indicates the model is overfitted, and will perform poorly on test data. Low bias usually comes at the cost of high variance in the prediction. Bias is measured in this report to provide warning of overfitting. It may not be directly comparable between models, as some models tend to have lower bias but still may perform better.
+
 
 # Coding Requirments
 
+## Libraries
+
 The following libraries are needed to run the code throughout this report. They should be installed on a machine using the "install.packages()" function in R before loading.
 
-```{r libraries, message=FALSE}
+```{r libraries, message=FALSE, warning=FALSE}
 library(knitr)
 library(plyr)
 library(dplyr)
@@ -118,9 +151,10 @@ library(glmnet)
 library(gbm)
 library(tibble)
 library(forcats)
+library(rmdformats) # Using developmental version
 ```
 
-# Functions
+## Functions
 
 Below are a series of functions (not from libraries) used in different places throughout the report. They are written by the authors unless otherwise specified.
 
@@ -893,7 +927,6 @@ remove(combined_air_climate_clean,combined_energy_minerals_clean,combined_land_a
        combined_natural_disaster_clean,combined_other_clean,final_crosswalk,final_crosswalk_Country_Only)
 ```
 
-
 ## Limiting the Data
 
 The following code limits the observations and variables based on a number of practical criteria. First, any missing values are replaced with NAs. Non-numeric data is converted to numeric (except for country names). Variables that were originally included from the CSVs as "Notes" are excluded. Additionally, the renewable percentage for 2017 is converted to a percentage (the data is a percentage from the source, not a decimal). 
@@ -1047,7 +1080,7 @@ remove(fit,i,negative_indeces,
 
 The interpolation process was found to produce values that replaced the missing values in a reasonable manner. All of the variables were checked to determine none of the interpolated values were outliers compared to the emperical distribution of the observed values for each variable. A histogram of "Ramsar Convention Year" is shown below.
 
-```{r}
+```{r interpolation_example, warning = FALSE}
 # Create a Plot to Compare Data Sets before and After
 distr_df = data.frame(Filled = model_data$Ramsar_Convention, 
                       Missing = limited_data$Ramsar_Convention) %>% 
@@ -1057,7 +1090,7 @@ distr_df = data.frame(Filled = model_data$Ramsar_Convention,
 ggplot(distr_df, aes(x = y_i, fill = variable)) +
   geom_histogram(position = "identity",binwidth = 2, alpha = .4) +
   labs(x = "y_i", y = "Frequency", 
-       title = "Comparison") +
+       title = "Comparison Ramsar_Convention\nBefore and After Interpolation") +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 5)) +
   scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
   theme_minimal() +
@@ -1075,9 +1108,15 @@ This graph illustrates what occurs after interpolating the missing values in the
 
 ## Training and Test Data
 
-[Include discussion of training and Test Data Set]
+The cleaned data is divided into test and training data. The testing data is used to evaluate the performance of the predictive model. Using a seperate set of data forces the model to perform on new values, as if it were predicting observations that had not been recorded. This process simulates what would occur if new observations were trying to be predicted (new countries came into being) or perhaps could be used to predict renewable energy percentages in future years. The test data is used to calculate RMSE and MEA.
 
-Cross Validation (abbreviated CV in the report)
+The training data is used to fit the model. The training data is additionally used to calculate bias.
+
+The test-training data split for this model was decided as $80\%$ training and $20\%$. Given there are only 195 observations available after the data cleaning process, it is important to have enough data to train a robust model. Assigning $20%$ of the data allows for 39 observations to be in the test set. This is enough that outliers should not seriously impact the results without limiting the training data set size more than necesary. Although not the main reason for the decided split, 39 observations allows for easy graphing of the predictions versus the actual reported value.
+
+Along with test and training data, there is a need for validation data. The purpose of validation data is to get estimates of the test error while still fitting the model parameters (the test data is reserved for the final model). In this project cross validation (CV) is used where possible. Cross validation is the process of breaking the training data into "folds." The for the $kth$ fold, the other folds are treated as training data to fit the model, and the $kth$ fold is treated as test data to get the CV error. Generally the reported CV error is the average over the $k$ folds. For example, if 10 fold cross validation is used, then the training data will be split into 10 parts, and will fill be fit 10 times. The CV error for the model will be the average of the 10 test errors. The value of cross validation is that it allows for all the training data to be used in model fitting.
+
+Below the data is broken into test and training data randomly.
 
 ```{r train_test_split}
 ## Load the Data from the 02 File
@@ -1093,6 +1132,53 @@ y.train = model_data[train, ]$renewable_percent_2017
 x.test = model_data[-train, ]
 y.test = model_data[-train, ]$renewable_percent_2017
 ```
+
+No stratefication is employed in splitting the test and training data. Stratified samling is a method for sampling randomly while ensuring certain categories of observations are present at specified levels in the training or test data. For example, the training data might be sampled so that there are equal percentages of high and low population countries in the test and training data.
+
+Stratification can be useful in sampling, but there needs to be some justification for limiting the randomness of the sample. The most obvious choices for potential stratification are the major demographics for countries: population, land area, and GDP. If there were some obvious relationship between renewable percentage and these factors, then it would make sense to make sure the test and training data sets had equal proportions of different bins (since the variables are all continuous) of these variables.
+
+```{r lm_world_bank_data}
+# Simply Linear Model predicting renewable percent with demographics
+basic_model = lm(renewable_percent_2017 ~ X2017_Population_World_Bank + 
+                   X2017_Land_Area_km_2 + X2017_GDP_US_Dollars_World_Bank, data = model_data)
+summary(basic_model)
+```
+
+The above linear model makes clear that there is no obvious relationship between these demographic variables and renewable energy percentage. None of the p-values are remotely close to significance. Therefore there is no justification for stratifying the samples based on any of these variables.
+
+```{r response_histograms_split, class.source = 'fold-hide'}
+# Histogram of training renewable energy
+y.train.df = data.frame(y = y.train)
+y.train_hist = ggplot(data = y.train.df, aes(x = y)) +
+  geom_histogram(alpha = 0.5, binwidth = .1) +
+  labs(x = "Renewable Energy Percentage", y = "Count",
+       title = "y.train histogram") +
+  theme(text = element_text(size = 20),
+    axis.text.y = element_text(angle=90, hjust=1, size = 10),
+    axis.text.x = element_text(size = 10),
+    plot.title = element_text(hjust = 0.5, size = 12),
+    axis.title=element_text(size=10,face="bold")) +
+  theme_minimal()
+
+# Histogram of test renewable energy
+y.test.df = data.frame(y = y.test)
+y.test_hist = ggplot(data = y.test.df, aes(x = y)) +
+  geom_histogram(alpha = 0.5, binwidth = .1) +
+  labs(x = "Renewable Energy Percentage", y = "Count",
+       title = "y.test histogram") +
+  theme(text = element_text(size = 20),
+    axis.text.y = element_text(angle=90, hjust=1, size = 10),
+    axis.text.x = element_text(size = 10),
+    plot.title = element_text(hjust = 0.5, size = 12),
+    axis.title=element_text(size=10,face="bold")) +
+  theme_minimal()
+
+# Plot Side by side
+plot_grid(y.train_hist,y.test_hist,ncol = 2)
+remove(y.train.df,y.train_hist,y.test.df,y.test_hist)
+```
+
+Plots of the histograms for y.train and y.test indicate that the distributions of renewable energy percentage are roughly the same between the training and test data. There is no reasoning to support stratification here, and therefore the random sampling is sufficient for the remainder of the report.
 
 
 ## Model 1: Regularized Linear Model
@@ -1576,7 +1662,7 @@ remove(boost_predict_graph_data,boost_tree_model)
 ```
 
 
-# Discussion of Results
+# Results
 
 # Conclusion
 
@@ -1585,5 +1671,7 @@ remove(boost_predict_graph_data,boost_tree_model)
 ## Limitations and Future Work
 
 The Inland Water Resources and Waste data, available from the Global Environmental Indicators data set, were not considered due to time constraints. Both folders have a large number of .csv's and corresponding data. Future work could be done to include indicators from these areas and determine if they substantial improve the prediction accuracy of these models.
+
+[Boosted Trees Low Bias - could warrant further work. Interesting relationship between NOx and Renewable Energy Percentage in Boosted Tree]
 
 # Works Cited

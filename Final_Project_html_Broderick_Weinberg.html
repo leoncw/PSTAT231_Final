@@ -1,192 +1,185 @@
 <!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="generator" content="pandoc" />
 
-<html>
+        <meta name="author" content="Hailey Broderick and Callum Weinberg" />
+    
+        <meta name="date" content="2022-03-11" />
+    
+    <title>Predicting Countries' Renewable Energy Percentage Using Environmental Indicators using Parametric and Non-Parametric Modeling</title>
 
-<head>
+        <script src="Final_Project_html_Broderick_Weinberg_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="Final_Project_html_Broderick_Weinberg_files/bootstrap-3.3.7/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="Final_Project_html_Broderick_Weinberg_files/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script src="Final_Project_html_Broderick_Weinberg_files/navigation-1.1/tabsets.js"></script>
+    <script src="Final_Project_html_Broderick_Weinberg_files/navigation-1.1/codefolding.js"></script>
+    <link href="Final_Project_html_Broderick_Weinberg_files/downcute-0.1/downcute.css" rel="stylesheet" />
+    <link href="Final_Project_html_Broderick_Weinberg_files/downcute-0.1/downcute_fonts_embed.css" rel="stylesheet" />
+    <link href="Final_Project_html_Broderick_Weinberg_files/downcute-0.1/downcute_chaos.css" rel="stylesheet" />
+    <script src="Final_Project_html_Broderick_Weinberg_files/downcute-0.1/downcute_styles.js"></script>
+    <script src="Final_Project_html_Broderick_Weinberg_files/downcute-0.1/downcute.js"></script>
+    <script src="Final_Project_html_Broderick_Weinberg_files/prism-1.22/prism.js"></script>
+    
+    
+    
+    
+    <!-- tabsets -->
+    <script>
+      $(document).ready(function () {
+	  window.buildTabsets("toc");
+      });
+      $(document).ready(function () {
+	  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+	      $(this).parent().toggleClass('nav-tabs-open')
+	  });
+      });
+    </script>
 
-<meta charset="utf-8" />
-<meta name="generator" content="pandoc" />
-<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+    <!-- code folding -->
+        <script>
+      $(document).ready(function () {
+	  	  	  window.initializeCodeFolding("show" === "show");
+	        });
+    </script>
+    
+    <!-- code download -->
+    
+    <!-- tabsets dropdown -->
 
+    <style type="text/css">
+      .tabset-dropdown > .nav-tabs {
+	  display: inline-table;
+	  max-height: 500px;
+	  min-height: 44px;
+	  overflow-y: auto;
+	  background: white;
+	  border: 1px solid #ddd;
+	  border-radius: 4px;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li.active:before {
+	  content: "";
+	  font-family: 'Glyphicons Halflings';
+	  display: inline-block;
+	  padding: 10px;
+	  border-right: 1px solid #ddd;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+	  content: "&#xe258;";
+	  border: none;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+	  content: "";
+	  font-family: 'Glyphicons Halflings';
+	  display: inline-block;
+	  padding: 10px;
+	  border-right: 1px solid #ddd;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li.active {
+	  display: block;
+      }
 
-<meta name="author" content="Hailey Broderick and Callum Weinberg" />
+      .tabset-dropdown > .nav-tabs > li.active a {
+  	  padding: 0 15px !important;
+      }
 
-<meta name="date" content="2022-03-11" />
-
-<title>PSTAT 231 Final Broderick-Weinberg</title>
-
-<script src="Final_Project_html_Broderick_Weinberg_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="Final_Project_html_Broderick_Weinberg_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
-<script src="Final_Project_html_Broderick_Weinberg_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
-<script src="Final_Project_html_Broderick_Weinberg_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
-<script src="Final_Project_html_Broderick_Weinberg_files/bootstrap-3.3.5/shim/respond.min.js"></script>
-<style>h1 {font-size: 34px;}
-       h1.title {font-size: 38px;}
-       h2 {font-size: 30px;}
-       h3 {font-size: 24px;}
-       h4 {font-size: 18px;}
-       h5 {font-size: 16px;}
-       h6 {font-size: 12px;}
-       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
-       pre:not([class]) { background-color: white }</style>
-<script src="Final_Project_html_Broderick_Weinberg_files/navigation-1.1/tabsets.js"></script>
-<script src="Final_Project_html_Broderick_Weinberg_files/navigation-1.1/codefolding.js"></script>
-<link href="Final_Project_html_Broderick_Weinberg_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
-<script src="Final_Project_html_Broderick_Weinberg_files/highlightjs-9.12.0/highlight.js"></script>
-
-<style type="text/css">
-  code{white-space: pre-wrap;}
-  span.smallcaps{font-variant: small-caps;}
-  span.underline{text-decoration: underline;}
-  div.column{display: inline-block; vertical-align: top; width: 50%;}
-  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-  ul.task-list{list-style: none;}
+      .tabset-dropdown > .nav-tabs > li > a,
+      .tabset-dropdown > .nav-tabs > li > a:focus,
+      .tabset-dropdown > .nav-tabs > li > a:hover {
+	  border: none;
+	  display: inline-block;
+	  border-radius: 4px;
+	  background-color: transparent;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+	  display: block;
+	  float: none;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li {
+	  display: none;
+	  margin-left: 0 !important;
+      }
     </style>
-
-<style type="text/css">code{white-space: pre;}</style>
-<script type="text/javascript">
-if (window.hljs) {
-  hljs.configure({languages: []});
-  hljs.initHighlightingOnLoad();
-  if (document.readyState && document.readyState === "complete") {
-    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
-  }
-}
-</script>
-
-
-
-
-
-
-
-
-
-<style type = "text/css">
-.main-container {
-  max-width: 940px;
-  margin-left: auto;
-  margin-right: auto;
-}
-img {
-  max-width:100%;
-}
-.tabbed-pane {
-  padding-top: 12px;
-}
-.html-widget {
-  margin-bottom: 20px;
-}
-button.code-folding-btn:focus {
-  outline: none;
-}
-summary {
-  display: list-item;
-}
-details > summary > p:only-child {
-  display: inline;
-}
-pre code {
-  padding: 0;
-}
-</style>
-
-
-
-<!-- tabsets -->
-
-<style type="text/css">
-.tabset-dropdown > .nav-tabs {
-  display: inline-table;
-  max-height: 500px;
-  min-height: 44px;
-  overflow-y: auto;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.tabset-dropdown > .nav-tabs > li.active:before {
-  content: "";
-  font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-  content: "&#xe258;";
-  border: none;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-  content: "";
-  font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
-}
-
-.tabset-dropdown > .nav-tabs > li.active {
-  display: block;
-}
-
-.tabset-dropdown > .nav-tabs > li > a,
-.tabset-dropdown > .nav-tabs > li > a:focus,
-.tabset-dropdown > .nav-tabs > li > a:hover {
-  border: none;
-  display: inline-block;
-  border-radius: 4px;
-  background-color: transparent;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
-  display: block;
-  float: none;
-}
-
-.tabset-dropdown > .nav-tabs > li {
-  display: none;
-}
-</style>
-
-<!-- code folding -->
-<style type="text/css">
-.code-folding-btn { margin-bottom: 4px; }
-</style>
-
-
-
-
+    
 </head>
 
-<body>
+<body class="preload">
 
-
-<div class="container-fluid main-container">
-
-
-
-
-<div id="header">
-
-<div class="btn-group pull-right float-right">
-<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
-<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
-<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
-<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
-</ul>
-</div>
-
-
-
-<h1 class="title toc-ignore">PSTAT 231 Final Broderick-Weinberg</h1>
-<h4 class="author">Hailey Broderick and Callum Weinberg</h4>
-<h4 class="date">March 11, 2022</h4>
-
-</div>
-
-
+                  <!-- downcute start -->   
+   <div id="docute" class="Root theme-chaos">
+     <div class="Page layout-narrow">
+      <div class="Wrap">
+        <div class="Sidebar">
+          <div class="SidebarItems" id="toc">
+            <ul>
+            <li><a href="#executive-summary">Executive Summary</a></li>
+            <li><a href="#introduction">Introduction</a><ul>
+            <li><a href="#background">Background</a></li>
+            <li><a href="#data-global-environmental-indicators">Data: Global Environmental Indicators</a></li>
+            <li><a href="#purpose-and-methods">Purpose and Methods</a></li>
+            </ul></li>
+            <li><a href="#coding-requirments">Coding Requirments</a><ul>
+            <li><a href="#libraries">Libraries</a></li>
+            <li><a href="#functions">Functions</a></li>
+            </ul></li>
+            <li><a href="#data-cleaning">Data Cleaning</a><ul>
+            <li><a href="#manual-crosswalks">Manual Crosswalks</a></li>
+            <li><a href="#loading-and-combing-csvs-from-subfolders">Loading and Combing CSVs from Subfolders</a></li>
+            <li><a href="#limiting-the-data">Limiting the Data</a></li>
+            </ul></li>
+            <li><a href="#interpolating-missing-data">Interpolating Missing Data</a></li>
+            <li><a href="#analysis-and-prediction">Analysis and Prediction</a><ul>
+            <li><a href="#exploratory-data-analysis">Exploratory Data Analysis</a></li>
+            <li><a href="#training-and-test-data">Training and Test Data</a></li>
+            <li><a href="#model-1-regularized-linear-model">Model 1: Regularized Linear Model</a></li>
+            <li><a href="#model-2-regularized-beta-regression-model">Model 2: Regularized Beta Regression Model</a></li>
+            <li><a href="#model-3-random-forest">Model 3: Random Forest</a></li>
+            <li><a href="#model-4-boosted-trees">Model 4: Boosted Trees</a></li>
+            </ul></li>
+            <li><a href="#results">Results</a></li>
+            <li><a href="#conclusion">Conclusion</a><ul>
+            <li><a href="#findings-and-evaluation-of-project-goals">Findings and Evaluation of Project Goals</a></li>
+            <li><a href="#limitations-and-future-work">Limitations and Future Work</a></li>
+            </ul></li>
+            <li><a href="#works-cited">Works Cited</a></li>
+            </ul>
+          </div>
+          <div data-position="sidebar:post-end" class="InjectedComponents"><div class="dark-theme-toggler"><div class="toggle checked"><div class="toggle-track"><div class="toggle-track-check"><img  src="data:image/png;base64,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" role="presentation" style="pointer-events: none;" width="16" height="16"></div> <div class="toggle-track-x"><img src="data:image/png;base64,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" role="presentation" style="pointer-events: none;" width="16" height="16"></div></div> <div class="toggle-thumb"></div></div> <input type="checkbox" aria-label="Switch between Dark and Default theme" class="toggler-screen-reader-only"></div></div>
+        </div>
+        <div class="Main">
+          <div class="Content" id="content"> 
+   
+      <div class="btn-group pull-right">
+     <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+     <ul class="dropdown-menu" style="min-width: 50px;">
+	    	    <li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+	    <li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+	    	    	         </ul>
+   </div>
+   
+        
+      <h1 class="title">Predicting Countries' Renewable Energy Percentage Using Environmental Indicators using Parametric and Non-Parametric Modeling</h1>
+         <h1 class="subtitle">PSTAT 231 Final Broderick-Weinberg</h1>
+   
+      <p class="authors">
+           <span class="glyphicon glyphicon-user"></span> Hailey Broderick and Callum Weinberg
+      </p>
+         <p class="date"><span class="glyphicon glyphicon-calendar"></span> March 11, 2022</p>
+         
+   
+      
+   
+<!-- Don't indent these lines or it will mess pre blocks indentation --> 
+<div class="page-content has-page-title">
 <div id="executive-summary" class="section level1">
 <h1>Executive Summary</h1>
 </div>
@@ -252,18 +245,23 @@ pre code {
 </div>
 <div id="purpose-and-methods" class="section level2">
 <h2>Purpose and Methods</h2>
-<p>The primary purpose of this report is to predict renewable energy percentages for countries in 2017 using Global energy indicators provided in the Global Environmental Indicators data set. This report primarily focuses on predictive statistics (although there may be some comments related to inferential statistics). The idea is that certain environmental indicators may be able to predict the renewable energy percentage a country exhibits.</p>
-<p>Using countries as observations implies that any data set with a large number of predictors will almost certainly deal with the statistical problem of <span class="math inline">\(p\)</span> not being significantly larger than <span class="math inline">\(n\)</span> (p being predictors, and n being number of observations). Therefore this project will focus on fitting sparsity-induding predictive models. Sparsity inducing models generally &quot;shrink&quot; parameters to either small values (e.g. ridge regression) or 0 (e.g. lasso regression) so that effectively, <span class="math inline">\(p\)</span> is decreased. Such models often allow some bias to decrease the variance that would otherwise be inherent to a model with relatively large <span class="math inline">\(p\)</span>. Parametric and Non-parametric models are included.</p>
+<p>The primary purpose of this report is to predict renewable energy percentages for countries in 2017 using Global energy indicators provided in the Global Environmental Indicators data set. This report primarily focuses on predictive statistics (although there may be some comments related to inferential statistics). The motivation is that certain environmental indicators may be able to predict the renewable energy percentage a country exhibits.</p>
+<p>An analysis of countries as observations means that any data set with a large number of predictors will almost certainly deal with the statistical problem of <span class="math inline">\(p\)</span> not being significantly larger than <span class="math inline">\(n\)</span> (p being predictors, and n being number of observations). Therefore this project will focus on fitting sparsity-induding predictive models. Sparsity inducing models generally &quot;shrink&quot; parameters to either small values (e.g. ridge regression) or 0 (e.g. lasso regression) so that effectively, <span class="math inline">\(p\)</span> is decreased. Such models often allow some bias to decrease the variance that would otherwise be inherent to a model with relatively large <span class="math inline">\(p\)</span>. Parametric and non-parametric models are included.</p>
 <p>All of the selected models are supervised learning models. The models are trained on a subset of the data (called the &quot;training set&quot;) and are validated with cross-validation (see Training and Test Data section for further discussion), with one exception (see Model 2). The predictive power of the models is measured using a test training set. The model error is the primary metric for measuring the success of prediction. Error is generally measured using a loss function. Renewable energy percentage is a continuous, numeric, variable bounded by 0 and 1. Therefore the two loss functions used are based on absolute loss and quadratic loss.</p>
 <p>The following applies for reported renewable energy percentage <span class="math inline">\(y_i\)</span> (for country <span class="math inline">\(i\)</span>) and  renewable energy percentage <span class="math inline">\(\hat{y_i}\)</span>. Mean Absolute Error (MAE), which is a form of absolute loss, is defined as:</p>
 <p><span class="math display">\[MAE = \frac{\sum_{i = 1}^{n}|\hat{y_i}-y_i|}{n}\]</span></p>
 <p>Root Mean Square Error (RMSE), which is a form of quadratic loss, is defined as:</p>
 <p><span class="math display">\[RMSE = \sqrt{\frac{\sum_{i = 1}^{n}(\hat{y_i}-y_i)^2}{n}}\]</span></p>
-<p>RMSE is the most commonly used metric in comparing the relative accuracy of predictive models. However, MAE has a very nice interpreation in this project. Since percentages are bounded by 0 and 1, the MAE is easily interpreted as the average percentage miss in either direction for the set of predictions. So if the <span class="math inline">\(MAE = .10\)</span> for a model and a specific test data set, then the predictions on average were .1% away from the true percentages.</p>
+<p>RMSE is the most commonly used metric in comparing the relative accuracy of predictive models. However, MAE has a very nice interpreation in this project. Since percentages are bounded by 0 and 1, the MAE is easily interpreted as the average percentage miss in either direction for the set of predictions. So if the <span class="math inline">\(MAE = .10\)</span> for a model and a specific test data set, then the predictions on average were .1% away from the true percentages. RMSE and MAE are typically measured on the test data (or validation data), i.e. <span class="math inline">\(y_i \in \{y_{test}\}\)</span></p>
+<p>[BLURB ABOUT MAE]</p>
+<p>Finally, the Bias of the model is considerd. Bias is defined as:</p>
+<p><span class="math display">\[Bias = \frac{\sum_{i = 1}^{n}\hat{y_i}-y_i}{n}\]</span> Unlike MAE and RMSE, bias is measured using the training data, i.e. <span class="math inline">\(y_i \in \{y_{train}\}\)</span>. Effectively, it measures how close the predicted values are on average to the values used to fit them. By effectively having a large number of predictors (e.g. <span class="math inline">\(n\)</span> fitting polynomial terms in a Generalized Additive Model), it is often possible to get the bias close to 0. This generally indicates the model is overfitted, and will perform poorly on test data. Low bias usually comes at the cost of high variance in the prediction. Bias is measured in this report to provide warning of overfitting. It may not be directly comparable between models, as some models tend to have lower bias but still may perform better.</p>
 </div>
 </div>
 <div id="coding-requirments" class="section level1">
 <h1>Coding Requirments</h1>
+<div id="libraries" class="section level2">
+<h2>Libraries</h2>
 <p>The following libraries are needed to run the code throughout this report. They should be installed on a machine using the &quot;install.packages()&quot; function in R before loading.</p>
 <pre class="r"><code>library(knitr)
 library(plyr)
@@ -277,10 +275,11 @@ library(cowplot)
 library(glmnet)
 library(gbm)
 library(tibble)
-library(forcats)</code></pre>
+library(forcats)
+library(rmdformats) # Using developmental version</code></pre>
 </div>
-<div id="functions" class="section level1">
-<h1>Functions</h1>
+<div id="functions" class="section level2">
+<h2>Functions</h2>
 <p>Below are a series of functions (not from libraries) used in different places throughout the report. They are written by the authors unless otherwise specified.</p>
 <p>The below function checks for missing values in a data frame or matrix.</p>
 <pre class="r fold-hide"><code># From https://cran.r-project.org/web/packages/assertr/vignettes/assertr.html
@@ -316,6 +315,7 @@ qqplot_residuals &lt;- function (vec) # argument: vector of numbers
     theme(plot.title = element_text(hjust = 0.5)) + 
     theme_minimal()
 }</code></pre>
+</div>
 </div>
 <div id="data-cleaning" class="section level1">
 <h1>Data Cleaning</h1>
@@ -1149,13 +1149,12 @@ distr_df = data.frame(Filled = model_data$Ramsar_Convention,
 ggplot(distr_df, aes(x = y_i, fill = variable)) +
   geom_histogram(position = &quot;identity&quot;,binwidth = 2, alpha = .4) +
   labs(x = &quot;y_i&quot;, y = &quot;Frequency&quot;, 
-       title = &quot;Comparison&quot;) +
+       title = &quot;Comparison Ramsar_Convention\nBefore and After Interpolation&quot;) +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 5)) +
   scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5, size = 12))</code></pre>
-<pre><code>## Warning: Removed 25 rows containing non-finite values (stat_bin).</code></pre>
-<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/interpolation_example-1.png" width="768" /></p>
 <p>This graph illustrates what occurs after interpolating the missing values in the Ramsar Convention variable. For the missing values, there year is being predicted. The interpolated values are mostly towards the center of the distribution, with some weight towards the higher end (later year) of the distribution. If a country has not signed the convention, it arguably makes sense they would be interpolated to sign later (since signing later implies less enthusiasm for the convention, as does signing later).</p>
 </div>
 <div id="analysis-and-prediction" class="section level1">
@@ -1324,30 +1323,30 @@ beta_model = bamlss(beat_regression_model, family = &quot;beta&quot;,
 ## BIC -236.799 edf 32.000 lambda 0.0013 iteration  98
 ## BIC -236.799 edf 32.000 lambda 0.0011 iteration  99
 ## BIC -236.799 edf 32.000 lambda 0.0010 iteration 100
-## elapsed time:  0.41sec
+## elapsed time:  0.49sec
 ## Starting the sampler...
 ## 
-## |                    |   0% 23.98sec
-## |*                   |   5% 25.21sec  1.33sec
-## |**                  |  10% 23.67sec  2.63sec
-## |***                 |  15% 22.50sec  3.97sec
-## |****                |  20% 21.30sec  5.32sec
-## |*****               |  25% 20.03sec  6.68sec
-## |******              |  30% 18.66sec  8.00sec
-## |*******             |  35% 17.53sec  9.44sec
-## |********            |  40% 16.08sec 10.72sec
-## |*********           |  45% 14.73sec 12.06sec
-## |**********          |  50% 13.35sec 13.35sec
-## |***********         |  55% 12.01sec 14.68sec
-## |************        |  60% 10.67sec 16.00sec
-## |*************       |  65%  9.50sec 17.64sec
-## |**************      |  70%  8.12sec 18.96sec
-## |***************     |  75%  6.75sec 20.26sec
-## |****************    |  80%  5.39sec 21.57sec
-## |*****************   |  85%  4.06sec 23.00sec
-## |******************  |  90%  2.72sec 24.53sec
-## |******************* |  95%  1.38sec 26.16sec
-## |********************| 100%  0.00sec 27.76sec</code></pre>
+## |                    |   0% 28.78sec
+## |*                   |   5% 28.42sec  1.50sec
+## |**                  |  10% 27.20sec  3.02sec
+## |***                 |  15% 25.91sec  4.57sec
+## |****                |  20% 24.84sec  6.21sec
+## |*****               |  25% 23.03sec  7.68sec
+## |******              |  30% 21.33sec  9.14sec
+## |*******             |  35% 19.77sec 10.65sec
+## |********            |  40% 18.17sec 12.11sec
+## |*********           |  45% 16.61sec 13.59sec
+## |**********          |  50% 15.08sec 15.08sec
+## |***********         |  55% 13.56sec 16.57sec
+## |************        |  60% 12.03sec 18.05sec
+## |*************       |  65% 10.53sec 19.55sec
+## |**************      |  70%  9.02sec 21.05sec
+## |***************     |  75%  7.52sec 22.57sec
+## |****************    |  80%  6.02sec 24.07sec
+## |*****************   |  85%  4.52sec 25.59sec
+## |******************  |  90%  3.01sec 27.07sec
+## |******************* |  95%  1.50sec 28.58sec
+## |********************| 100%  0.00sec 30.07sec</code></pre>
 <pre class="r fold-show"><code>## Summary of the model
 summary(beta_model)</code></pre>
 <pre><code>## 
@@ -1457,7 +1456,7 @@ summary(beta_model)</code></pre>
 ## Sampler summary:
 ## -
 ## DIC = -319.5839 logLik = 179.1992 pd = 38.8144
-## runtime = 27.775
+## runtime = 30.077
 ## ---
 ## Optimizer summary:
 ## -
@@ -1510,7 +1509,7 @@ plot_grid(histogram_beta_residuals,qq_beta_residuals, resid_vs_fit_model,
           label_size = 10,
           hjust = -.75)</code></pre>
 <pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
-<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/beta_residuals,%20-1.png" width="672" /></p>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/beta_residuals,%20-1.png" width="768" /></p>
 <p>[COME BACK AND DO OUTLIER PLOT IF TIME]</p>
 <p>Quantile residuals are provided by the  package and are used here per the reccomendation from the bamlss website [CITE <a href="https://bayesr.r-forge.r-project.org/articles/glm.html" class="uri">https://bayesr.r-forge.r-project.org/articles/glm.html</a>]. The diagnostic plots overall suggest the beta regression model is an acceptable choice for the data, if not quite perfect. The histogram and the quantile-quantile plot (QQ Plot) both suggest the residuals are very roughly normally distributed. The histogram roughly looks like a normal distribution. The normal qunatiles and quantiles of the residuals roughly track, with some rightward skew. This suggests there are some outliers in the residuals on the right-hand side of the distribution (in the QQ Plot, the blue dots would track the black line exactly if the residuals were normally distributed). Finally, the residuals versus fitted plot shows the relationship between the residuals and the predicted values of the training data. Note the fitted values here are the log odds, and not in terms of percentages (as specified by the model). There should be now obvious relationship or heteroskedasticity. The plot suggests rough randomness in the relationship. Overall, the plots suggest that the model does not predict high renewable energy percentages particularly well, but the choice of a beta regression model seems somewhat justified.</p>
 <p>Given the model is adequate, prediction is done using the test data. Note that predicted values are available for the posterior mean and variance parameters, but only the predicted value is analyzed here (not the uncertainty around said prediction).</p>
@@ -1553,7 +1552,7 @@ ggplot(data = beta_predict_graph_data, aes(x = observation, label = Country)) +
                      values=c(&#39;Actual&#39;=&#39;black&#39;, &#39;Predicted&#39;=&#39;red&#39;)) +
   theme(legend.title=element_text(size=20), legend.text=element_text(size=14)) +
   theme_minimal()</code></pre>
-<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/beta_prediction_graph-1.png" width="672" /></p>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/beta_prediction_graph-1.png" width="768" /></p>
 <p>The above graph shows the difference between the predicted values and the actual values for renewable energy percentage in 2017. Generally, the largest source of error appears to come from countries that have actual renewable percentages close to or greater than .7.</p>
 <pre class="r fold-hide"><code># Create Dataframe with Absolute Difference
 # Arrange to be in Order
@@ -1763,7 +1762,7 @@ ggplot(data = graph_cv_error_df, aes(x=D, y=Nu, fill=CV_Error)) +
   #scale_y_continuous(breaks = .00001) +
   labs(title = &quot;Heatmap of CV Errors Across D and Mu\nMinimum Error Across M&quot;) +
   theme_minimal()</code></pre>
-<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/boosted_model_optimization_cv-1.png" width="672" /></p>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/boosted_model_optimization_cv-1.png" width="768" /></p>
 <p>The combination of parameters that minimizes CV error was found to be <span class="math inline">\(\nu = .008\)</span>, <span class="math inline">\(D = 3\)</span>, and <span class="math inline">\(M = 560\)</span>, and the CV error was .08201. The code for the above plot is based on code available at this source: <span class="citation">(datavizpyr 2020)</span>. The heatmap above shows the matrix of <span class="math inline">\(\nu\)</span> and <span class="math inline">\(D\)</span>, and the minimum CV error value across all trees <span class="math inline">\(M\)</span> for each value. Lower minimum CV error values appear more to the right, which corresponds to models with more depth. Interestingly the model with lowest CV error is <span class="math inline">\(D=3\)</span>. The lowest CV Error is not at the low end of <span class="math inline">\(\nu\)</span> on this range for any <span class="math inline">\(D\)</span>. Ideally more values of <span class="math inline">\(\nu\)</span> would be tested, but this is computationally expensive. Ultimately, the above graphic suggests that finding optimal parameters is tricky and there is not an easy solution.</p>
 <pre class="r fold-hide"><code># The Number of Trees that minimizes CV Error
 kable(cv_error_position)</code></pre>
@@ -1977,8 +1976,8 @@ ggplot(data = ridgeway_df, aes(x = Number_of_Trees, y = CV_Error)) +
        x=&quot;M (Number of Trees)&quot;,y=&quot;CV Error&quot;) + 
   theme(legend.title=element_text(size=20), legend.text=element_text(size=14)) +
   theme_minimal()</code></pre>
-<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/plot_ridgeway-1.png" width="672" /></p>
-<p><span class="math inline">\(nu\)</span> of .0001 was chosen, which is 50 times smaller than the value in the first approach. The above process took 34.3920161724091 seconds for a relatively small data set. The optimization problem took 4.47723207871119 minutes. Ultimately, the Ridgeway approach did not achieve as low CV error rate, as can be seen above. The cross validation error did not reduce below 0.0888, whereas for the optimized solution (with the lowest possible <span class="math inline">\(\nu\)</span> being higher), the CV error was found to be .08201.</p>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/plot_ridgeway-1.png" width="768" /></p>
+<p><span class="math inline">\(\nu\)</span> of .0001 was chosen, which is 50 times smaller than the value in the first approach. The above process took 34.3920161724091 seconds for a relatively small data set. The optimization problem took 4.47723207871119 minutes. Ultimately, the Ridgeway approach did not achieve as low CV error rate, as can be seen above. The cross validation error did not reduce below 0.0888, whereas for the optimized solution (with the lowest possible <span class="math inline">\(\nu\)</span> being higher), the CV error was found to be .08201.</p>
 <p>Computationally, the Ridgeway approach is faster for a single run as compared to the optimization approach, but when fitting a single model with the optimal parameters resulting from the optimization approach, the single optimal model will be much faster. Both approaches would probably be reasonable here, but given the optimized model performed better in terms of minimizing CV error, it is fit for prediction below:</p>
 <pre class="r"><code># Fit the model using the optimized parameters
 set.seed(42)
@@ -1989,8 +1988,7 @@ boost_model_prediction = gbm(boost_tree_model, data=cbind(y.train,x.train),
 # CV Error
 paste0(&quot;Cross Validation Error: &quot;,round(boost_model_prediction$cv.error[560],4))</code></pre>
 <pre><code>## [1] &quot;Cross Validation Error: 0.0862&quot;</code></pre>
-<p>The randomness between fits seems to have relatively high impact on the performance: running the optimal model with the same seed in R (but likely from a slightly different starting point in the random number list) results in a CV error of .0861 at <span class="math inline">\(M=560\)</span>. This is still an improvement over the Ridgeway method. But it suggests that choosing the model with lowest CV error might be a computationally expensive task with diminishing returns in predictive power.</p>
-<p>Non-parametric methods are difficult to evaluate from an inferential standpoint. The relative influence metric is one method for understanding the relationship between predictors and the response for boosting. The relative influence plot for the predictive model is shown below.</p>
+<p>The randomness between fits seems to have relatively high impact on the performance: running the optimal model with the same seed in R (but likely from a slightly different starting point in the random number list) results in a CV error of .0861 at <span class="math inline">\(M=560\)</span>. This is still an improvement over the Ridgeway method. But it suggests that choosing the model with lowest CV error might be a computationally expensive task with diminishing returns in predictive power. Non-parametric methods are difficult to evaluate from an inferential standpoint. The relative influence metric is one method for understanding the relationship between predictors and the response for boosting. The relative influence plot for the predictive model is shown below.</p>
 <pre class="r fold-hide"><code># Get Relative Influence for Each Predictor
 boost_summary = summary(boost_model_prediction, plotit = FALSE)
 boost_relInf_df = data.frame(var = factor(boost_summary$var, 
@@ -2005,7 +2003,7 @@ ggplot(data = boost_relInf_df, aes(x = var, y = infl)) +
        y=&quot;Relative Influence&quot;,x=&quot;Predictor&quot;) + 
   theme(legend.title=element_text(size=20), legend.text=element_text(size=14)) +
   theme_minimal()</code></pre>
-<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/boost_model_analyze-1.png" width="672" /></p>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/boost_model_analyze-1.png" width="768" /></p>
 <p>The relative influence measures the &quot;empirical improvement&quot; of splitting a tree on the specificed predictor at a given point, averaged across all the trees in the algorithm <span class="citation">(see Hastie, Tibshirani, and Friedman 2017, sec. 2.4)</span>. The chart above indicates this boosted tree model found CO2 to be the most important variable, followed by NOx and forest area in 2015. Consumption variables and most treaties and conventions were found to be less important.</p>
 <pre class="r fold-hide"><code># Partial Dependence Plots
 partial_dependence_CO2 = plot(boost_model_prediction,i=&quot;CO2&quot;) 
@@ -2017,7 +2015,7 @@ partial_dependence_mining_value = plot(boost_model_prediction,i=&quot;mining_val
 plot_grid(partial_dependence_CO2,partial_dependence_NOx,
           partial_dependence_forest_area,partial_dependence_mining_value,
           ncol = 2)</code></pre>
-<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/boost_pd_plots-1.png" width="672" /></p>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/boost_pd_plots-1.png" width="768" /></p>
 <p>Above are partial dependence plots for the predictors with the four highest relative influences. For a partial dependence plot from the gbm package, an upward sloping curve indicates the predictor has positive correlation with the response and a downward sloping curve indicates a negative relationship with the response <span class="citation">(Walia 2017)</span>. The model is determining that countries with high CO2 and high mining value are likely to have lower renewable energy percentage. The opposite is true for forest area and NOx. Of these four predictors, NOx is a little surprising, as the model suggests that higher NOx emmissions are related to higher renewable energy percentages. It is difficult to tell from such a non-parametric model if this is a real relationship or is a artefact of the model, but is worth exploring more in the future. Besides NOx, the other relationships seem reasonable.</p>
 <p>Using the fitted model, prediction is performed below.</p>
 <pre class="r"><code># Prediction
@@ -2066,21 +2064,23 @@ ggplot(data = boost_predict_graph_data, aes(x = observation, label = Country)) +
                      values=c(&#39;Actual&#39;=&#39;black&#39;, &#39;Predicted&#39;=&#39;red&#39;)) +
   theme(legend.title=element_text(size=20), legend.text=element_text(size=14)) +
   theme_minimal()</code></pre>
-<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/boost_tree_prediction_graph-1.png" width="672" /></p>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/boost_tree_prediction_graph-1.png" width="768" /></p>
 <p>Even with a relatively low MAE of .2082, this prediction clearly struggles in certain regards. Almost non of the predictions are above .5, despite about a third of the countries having renewable energy percentages above .5. Some of the other predictions are better than in other models though. For example, the Beta Regression model struggles to predict Palau's low renewable energy percentage, while the boosted tree does a better job. Lesotho continues to be difficult to predict, and may just be an outlier conditional on the available predictors. Values closer to 0 are predicted better than in some of the models.</p>
 <pre class="r fold-hide"><code># Remove environmental objects from this section that
 # are unecessary for the remainder of the report
 remove(Optimal_Params_CV,Optimal_lambda,Optimal_D,graph_cv_error_df)
+remove(depth,lambda,time_optim,time_ridgeway)
+remove(cv_error_position,cv_error_vector,cv_error_ridgeway)
 remove(ridgeway_df)
 remove(boost_summary,boost_relInf_df)
 remove(partial_dependence_CO2,partial_dependence_NOx,
        partial_dependence_forest_area,partial_dependence_mining_value)
 remove(boost_tree_pred,boost_tree_fit)
-remove(boost_predict_graph_data)</code></pre>
+remove(boost_predict_graph_data,boost_tree_model)</code></pre>
 </div>
 </div>
-<div id="discussion-of-results" class="section level1">
-<h1>Discussion of Results</h1>
+<div id="results" class="section level1">
+<h1>Results</h1>
 </div>
 <div id="conclusion" class="section level1">
 <h1>Conclusion</h1>
@@ -2090,6 +2090,7 @@ remove(boost_predict_graph_data)</code></pre>
 <div id="limitations-and-future-work" class="section level2">
 <h2>Limitations and Future Work</h2>
 <p>The Inland Water Resources and Waste data, available from the Global Environmental Indicators data set, were not considered due to time constraints. Both folders have a large number of .csv's and corresponding data. Future work could be done to include indicators from these areas and determine if they substantial improve the prediction accuracy of these models.</p>
+<p>[Boosted Trees Low Bias - could warrant further work. Interesting relationship between NOx and Renewable Energy Percentage in Boosted Tree]</p>
 </div>
 </div>
 <div id="works-cited" class="section level1 unnumbered">
@@ -2128,56 +2129,38 @@ remove(boost_predict_graph_data)</code></pre>
 <li id="fn2"><p>Writing a new package that does this was considered outside the scope of this project<a href="#fnref2">↩</a></p></li>
 </ol>
 </div>
-
-
-
-
 </div>
 
-<script>
+   
+   
+              </div>
+  </div>
+  </div>
+  </div>
+   
+      
 
-// add bootstrap table styles to pandoc tables
-function bootstrapStylePandocTables() {
-  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
-}
-$(document).ready(function () {
-  bootstrapStylePandocTables();
-});
+  <script>
+    $(document).ready(function () {
 
-
-</script>
-
-<!-- tabsets -->
-
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open');
-  });
-});
-</script>
-
-<!-- code folding -->
-<script>
-$(document).ready(function () {
-  window.initializeCodeFolding("show" === "show");
-});
-</script>
+		// add bootstrap table styles to pandoc tables
+	$('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+		
+ 		
+	    });
+  </script>
 
 
-<!-- dynamically load mathjax for compatibility with self-contained -->
-<script>
-  (function () {
-    var script = document.createElement("script");
-    script.type = "text/javascript";
-    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
-    document.getElementsByTagName("head")[0].appendChild(script);
-  })();
-</script>
 
+    <!-- dynamically load mathjax for compatibility with self-contained -->
+  <script>
+    (function () {
+	var script = document.createElement("script");
+	script.type = "text/javascript";
+	script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+	document.getElementsByTagName("head")[0].appendChild(script);
+    })();
+  </script>
+  
 </body>
 </html>
