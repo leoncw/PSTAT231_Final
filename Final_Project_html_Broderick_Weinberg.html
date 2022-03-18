@@ -188,7 +188,7 @@
 </div>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
-<p>This report has been completed by Hailey Broderick and Callum Weinberg for PSTAT 131/231 in the Winter quarter of 2022 at the University of Santa Barbara. For course credit, the report has been submitted to Gauchospace, along with the structured folder which contains the raw data, additional markdown files (the necessary code is available below unless otherwise stated, but these may show some extra work), a codebook/data dictionary, data crosswalks, intermediate data files, a works cited document (called &quot;works_cited.bib&quot;), and the RMd file that creates this HTML file. If accessing this project via online interface, the materials can be found here: <a href="https://github.com/leoncw/PSTAT231_Final" class="uri">https://github.com/leoncw/PSTAT231_Final</a>. The web hosted version of this HTML document can be found HERE (INSERT THIS).</p>
+<p>This report has been completed by Hailey Broderick and Callum Weinberg for PSTAT 131/231 in the Winter quarter of 2022 at the University of Santa Barbara. For course credit, the report has been submitted to Gauchospace, along with the structured folder which contains the raw data, additional markdown files (the necessary code is available below unless otherwise stated, but these may show some extra work), a codebook/data dictionary, data crosswalks, intermediate data files, a works cited document (called &quot;works_cited.bib&quot;), and the RMd file that creates this HTML file. If accessing this project via online interface, the materials can be found here: <a href="https://github.com/leoncw/PSTAT231_Final" class="uri">https://github.com/leoncw/PSTAT231_Final</a>. The web hosted version of this HTML document can be found here: <a href="https://leoncw.github.io/PSTAT231_Final/Final_Project_html_Broderick_Weinberg.html" class="uri">https://leoncw.github.io/PSTAT231_Final/Final_Project_html_Broderick_Weinberg.html</a>.</p>
 <p>The primary purpose of this project and the course final assignment was to take a dataset and fit models to predict values of a variable. Specifically, the prediction is perfomed on a known variable (i.e. this is a supervised learning project) and a test data set is used to evaluate the performance of the models. Performing inferential statistics on the models was not the primary purpose of this project, but is discussed at times in the report.</p>
 <p>The structure of the report is as follows:</p>
 <ul>
@@ -1183,7 +1183,129 @@ ggplot(distr_df, aes(x = y_i, fill = variable)) +
 <h1>Analysis and Prediction</h1>
 <div id="exploratory-data-analysis" class="section level2">
 <h2>Exploratory Data Analysis</h2>
-<p>[Fill In]</p>
+<p>We preform exploratory data analysis in order to gain insight on the statistical properties of our data. This will allow us to better understand and visualize the relationships between our response and certain predictors which may be of higher importance for our data, as well as the relationships between predictors themselves. We preform EDA on our training set which consist of 156 observations and 34 variables.</p>
+<p>We begin our analysis by loading the data into R and using glimpse() to look at the variables in our dataset.</p>
+<pre class="r"><code>glimpse(model_data)</code></pre>
+<pre><code>## Rows: 195
+## Columns: 34
+## $ Country_Final                             &lt;chr&gt; &quot;Afghanistan&quot;, &quot;Albania&quot;, &quot;A…
+## $ Country_ID_Final                          &lt;dbl&gt; 1, 2, 3, 6, 8, 9, 10, 12, 13…
+## $ renewable_percent_2017                    &lt;dbl&gt; 0.8470, 1.0000, 0.0084, 0.71…
+## $ X2017_Population_World_Bank               &lt;dbl&gt; 36296111, 2873457, 41389174,…
+## $ X2017_Land_Area_km_2                      &lt;dbl&gt; 652860, 27400, 2381741, 1246…
+## $ X2017_GDP_US_Dollars_World_Bank           &lt;dbl&gt; 1.875347e+10, 1.301969e+10, …
+## $ CH4                                       &lt;dbl&gt; 13916.00, 1984.17, 32922.13,…
+## $ CO2                                       &lt;dbl&gt; 9851.00, 5942.57, 71593.26, …
+## $ GHG                                       &lt;dbl&gt; 43377.00, 8125.70, 111022.59…
+## $ NOx                                       &lt;dbl&gt; 66.00, 48.49, 280.33, 151.32…
+## $ energy_supply_petajoules                  &lt;dbl&gt; 123, 100, 2289, 618, 7, 3385…
+## $ energy_intensity_2017                     &lt;dbl&gt; 35.33, 59.08, 62.39, 78.42, …
+## $ energy_supply_2017                        &lt;dbl&gt; 123, 100, 2289, 618, 7, 3385…
+## $ mining_value_2017                         &lt;dbl&gt; 0.96, 2.74, 21.35, 21.58, 1.…
+## $ percent_land_agricultural_2013            &lt;dbl&gt; 58.1, 43.3, 17.4, 47.5, 20.5…
+## $ nitrogen_consumption                      &lt;dbl&gt; 1.04000, 25.73000, 1.08000, …
+## $ phosphate_consumption                     &lt;dbl&gt; 0.000000, 19.290000, 1.07000…
+## $ potash_consumption                        &lt;dbl&gt; 0.00000, 0.44000, 0.62000, 0…
+## $ terrestrial_protected_areas               &lt;dbl&gt; 0.1, 17.7, 7.5, 7.0, 18.6, 8…
+## $ protected_areas_marine_terrestrial        &lt;dbl&gt; 0.1, 13.5, 7.1, 5.0, 0.3, 7.…
+## $ forest_area_2015                          &lt;dbl&gt; 1208.44, 789.19, 1956.00, 69…
+## $ Basel_Convention                          &lt;dbl&gt; 2013, 1999, 1998, 2017, 1993…
+## $ CITES                                     &lt;dbl&gt; 1985, 2003, 1983, 2013, 1997…
+## $ Convention_on_Biological_Diversity        &lt;dbl&gt; 2002, 1994, 1995, 1998, 1993…
+## $ Kyoto__Protocol                           &lt;dbl&gt; 2013, 2005, 2005, 2007, 1998…
+## $ Montreal_Protocol                         &lt;dbl&gt; 2004, 1999, 1992, 2000, 1992…
+## $ Paris_Agreement                           &lt;dbl&gt; 2017.000, 2016.000, 2016.000…
+## $ Ramsar_Convention                         &lt;dbl&gt; 2001.132, 1996.000, 1984.000…
+## $ Rotterdam_Convention                      &lt;dbl&gt; 2013.000, 2006.097, 2004.744…
+## $ Stockholm_Convention                      &lt;dbl&gt; 2013.000, 2004.000, 2006.000…
+## $ UN_Convention_on_the_Law_of_the_Sea       &lt;dbl&gt; 1997.22, 2003.00, 1996.00, 1…
+## $ UN_Convention_to_Combat_Desertification   &lt;dbl&gt; 1995, 2000, 1996, 1997, 1997…
+## $ UN_Framework_Convention_on_Climate_Change &lt;dbl&gt; 2002, 1994, 1993, 2000, 1993…
+## $ World__Heritage_Convention                &lt;dbl&gt; 1979, 1989, 1974, 1991, 1983…</code></pre>
+<p>Our cleaned data contains 195 observations of 34 variables. Since our goal is to predict renewable energy percentage in 2017 for a given country, our response variable is renewable_percent_2017, and the remaining 31 variables are the predictors which we will use to build our models (excluding Country name and ID).</p>
+<p>Looking at the variables in our dataset, we see that Country_Final is a categorical variable, which indicates the country corresponding to the observation. Country_Final_ID is a numeric variable, although it is another form of Country identification, so its value represents a categorical variable as well. These variables won't directly influence renewable electricity production percentage, but will instead be an indicator for observations. In addition, we note that energy_supply_petajoules and energy_supply_2017 represent the same variables, thus we will choose to exclude energy_supply_2017 for the remainder of the project. We subset the data, removing these variables, before proceeding to analysis.</p>
+<pre class="r"><code>subset_data = model_data %&gt;%
+  select(-c(Country_Final, Country_ID_Final, energy_supply_2017))</code></pre>
+<p>We are interested in predicting the percentage of a country's total electricity production composed of renewable energy. In achieving accurate predictions, we would hope to draw conclusions about where countries should aim their resources/focus in order to raise renewable electricity production as a percentage of their total electricity production. This information would be beneficial because it could provide an indication of the best way to invest in renewable electricity sources, versus nonrenewable electricity sources, which pose a threat to our climate and precious resources.</p>
+<div id="response-variable-distribution" class="section level4">
+<h4>Response Variable Distribution</h4>
+<p>We first plot a histogram of our response variable of interest, renewable energy percentage, in order to examine its distribution.</p>
+<pre class="r"><code># Histogram of renewable electricity production percentage to check distribution
+ggplot(data=model_data, aes(x=renewable_percent_2017, y=..density..)) +
+       geom_histogram(bins=10, color=&quot;white&quot;)</code></pre>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/EDA_1-1.png" width="768" /> Based on the histogram of our response variable, renewable_percent_2017, we see that its probability distribution is heavily skewed right. Since the data is skewed, the best measure of the center of renewable_percent_2017 is the median. The right skew of the distribution means that it is more common for countries to have a lower renewable energy percentage (less than 50%). It is interesting to note that this probability seems to steadily decrease, increasing slightly at the tail end for 100% renewable energy production percentage.</p>
+</div>
+<div id="country-population-land-area-and-gdp-scatterplots" class="section level4">
+<h4>Country Population, Land Area, and GDP Scatterplots</h4>
+<p>Logically, the three variables which seem to most obviously differentiate countries are: Country Population (X2017_Population_World_Bank), Country land area measured in <span class="math inline">\(km^2\)</span> (X2017_Land_Area_km_2), and Country GDP measured in US dollars (X2017_GDP_US_Dollars_World_Bank). We would like to see if there is a direct correlation between these continuous variables and our response variable, renewable_percent_2017, by producing scatter plots with geom_point(). Initial plotting was difficult to make out since these variables are very large, thus we take a log transformation of these variables to properly scale them prior to making scatter plots.</p>
+<p>We use the ggplot2 package in order to create plots. Function geom_point() is used to make scatter plots.</p>
+<pre class="r"><code># transform large variables to scale via log transformation
+transform1 = subset_data %&gt;%
+  mutate_at(.vars=c(2:4), .funs=log)
+
+# scatter plot response vs Population
+ggplot(data=transform1, mapping = aes(x=renewable_percent_2017, y=X2017_Population_World_Bank)) +
+  geom_point() +
+  geom_smooth()</code></pre>
+<pre><code>## `geom_smooth()` using method = &#39;loess&#39; and formula &#39;y ~ x&#39;</code></pre>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/EDA_2-1.png" width="768" /></p>
+<pre class="r"><code># scatter plot response vs Land Area
+ggplot(data=transform1, mapping = aes(x=renewable_percent_2017, y=X2017_Land_Area_km_2)) +
+  geom_point() +
+  geom_smooth()</code></pre>
+<pre><code>## `geom_smooth()` using method = &#39;loess&#39; and formula &#39;y ~ x&#39;</code></pre>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/EDA_2-2.png" width="768" /></p>
+<pre class="r"><code># scatter plot response vs GDP
+ggplot(data=transform1, mapping = aes(x=renewable_percent_2017, y=X2017_GDP_US_Dollars_World_Bank)) +
+  geom_point() +
+  geom_smooth()</code></pre>
+<pre><code>## `geom_smooth()` using method = &#39;loess&#39; and formula &#39;y ~ x&#39;</code></pre>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/EDA_2-3.png" width="768" /> Based on our scatter plots of the three variables vs renewable energy percentage, we conclude that there is no significant correlation between renewable energy production percentage and a country's relative Population, GDP, or Land Area. Thus, we reject the notion that renewable energy percentage can be predicted based solely on these predictors.</p>
+</div>
+<div id="emissions-variables-relationships-ch4-co2-ghg-nox" class="section level4">
+<h4>Emissions Variables Relationships (CH4, CO2, GHG, NOx)</h4>
+<p>Next, we would like to see if there exists any relation between emission output variables CH4, CO2, GHG, and NOx, and other predictors. Emissions signal mass production of energy, both harmful and natural. We hypothesize that such emissions could be related to the variables.</p>
+<p>Upon plotting our data, we discovered that the emissions variables CH4, CO2, GHG, and NOx must be scaled in order to properly see relationships, as the values can be quite large. Thus, we decide to transform the emissions variables via a log transformation prior to making our plots.</p>
+<p>Logically, we assume that a higher amount of emissions for each country would correspond with a larger populations. CH4 is methane, which is used to produce light and heat. Thus, a larger should result in greater CH4 outputs from human activity which produces light and heat. We will test this hypothesis by looking at the correlation between CH4 and Population:</p>
+<pre class="r"><code>transform2 = transform1 %&gt;%
+  mutate_at(.vars=c(5:8), .funs=log)
+
+# boxplot
+ggplot(data=transform2, mapping = aes(x=X2017_Population_World_Bank, y=CH4)) +
+  geom_boxplot(mapping = aes(group = cut_width(X2017_Population_World_Bank, 3)))</code></pre>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/EDA_CH4-1.png" width="768" /> There appears to be a clear positive correlation between population and CH4 emission levels. This provides evidence that our hypothesis may be considered, larger populations result in higher levels of CH4 emisions. Note there do exist outliers for populations with smaller populations than output higher than expected levels of CH4.</p>
+<p>Next, we wish to check the relation between CO2 emissions and total energy supply (energy_supply_petajoules). CO2 emissions come from many sources, but human generation of energy (i.e. burning fossil fuels) is a huge source of contribution to CO2 emission levels. We suspect there may be a correlation between energy supply (from all sources, not just renewable) and CO2 emissions.</p>
+<pre class="r"><code>transform2 = transform2 %&gt;%
+  mutate(energy_supply_petajoules = log(energy_supply_petajoules))
+# boxplot
+ggplot(data=transform2, mapping = aes(x=energy_supply_petajoules, y=CO2)) +
+  geom_boxplot(mapping = aes(group = cut_width(x=energy_supply_petajoules, 3)))</code></pre>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/EDA_CO2-1.png" width="768" /> Based on our boxplot of energy_supply_petajoules vs CO2 emissions, it appears that there is a high correlation between these two variables. It appears that in general, larger supplies of energy correspond with rising levels of CO2 emissions. This is why it is important to increase percentages of renewable energy production, to limit the amount of CO2 generated by energy production.</p>
+<p>Green house gases (GHG) are another emission variables, which we believe may be correlated with land area, since GHG are mainly produced by naturally occurring sources, it is logical to assume that larger land area (X2017_Land_Area_km_2) may mean more GHG emissions.</p>
+<pre class="r"><code># boxplot
+ggplot(data=transform2, mapping = aes(x=X2017_Land_Area_km_2, y=GHG)) +
+  geom_boxplot(mapping = aes(group = cut_width(X2017_Land_Area_km_2, 1)))</code></pre>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/EDA_GHG-1.png" width="768" /> Based on our plots, there seems to be some positive correlation between GHG and land area, but not as extreme a correlation as the previous emission relationships which we observed.</p>
+<p>Nitrogen Oxide (NOx) is our final emission variable to examine. Nitrogen Oxide are harmful gases which are produced via burning fuel at high temperatures. Human activities such as construction and driving contribute to NOx emissions. Thus, we will venture to explore the relationship between GDP (X2017_GDP_US_Dollars_World_Bank) and NOx. We suspect there may exist a relationship since GDP corresponds to the value of goods produced/consumed in a country. A higher GDP should equate to higher production and consumption levels of goods, which we believe would increase NOx levels.</p>
+<pre class="r"><code># boxplot
+ggplot(data=transform2, mapping = aes(x=X2017_GDP_US_Dollars_World_Bank, y=NOx)) +
+  geom_boxplot(mapping = aes(group = cut_width(X2017_GDP_US_Dollars_World_Bank, 1))) </code></pre>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/EDA_NOx-1.png" width="768" /> Looking at the resulting boxplot, there appears to be some positive correlation between GDP and NOx emissions, which begins to plateu as GDP increases. But we must note that there exist a number of outliers which may influence these results.</p>
+</div>
+<div id="suspected-confounding-land-variables" class="section level4">
+<h4>Suspected Confounding Land Variables</h4>
+<p>We suspect that Land Area measured in <span class="math inline">\(km^{2}\)</span> (X2017_Land_Area_km_2) and Forest area (forest_area_2015), may be confounding variables since forest area would be a subset of total land area, thus we make a correlation graph between the two continuous variables. In order to properly view our data in the correlation graph, we must preform log transformation on both variables in order to properly scale the data.</p>
+<pre class="r"><code>ggplot(data=model_data) +
+  geom_point(mapping = aes(x= log(X2017_Land_Area_km_2), y = log(forest_area_2015)), color=&quot;green4&quot;)</code></pre>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/counfounding_vars_1-1.png" width="768" /> Based on the correlation graph, X2017_Land_Area_km_2 and forest_area_2015 exhibit linear behavior. Thus, there is a high positive correlation between these variables.</p>
+</div>
+<div id="paris-climate-agreement" class="section level4">
+<h4>Paris Climate Agreement</h4>
+<p>Finally we wish to acknowledge variables which represent the year that a Country officially formalized their participation in a selection of environmental international treaties and conventions. These predictor variables may be of importance because they indicate the Country's desire to pursue measures to mitigate climate change. We hypothesize that an earlier year of formalizing participation in such conventions and treaties would result in a decrease in harmful environmental activities. We assume that countries who formalize their participation observe the importance of transitioning off of fossil fuels decreasing harmful emissions, and begin their transition sooner than other countries. We check if there exists a relationship between one of the most well-known Climate agreements, The Paris Climate Accord (Paris_Agreement), and a harmful environmental activity mining (mining_value_2017):</p>
+<pre class="r"><code>ggplot(data=transform2, mapping = aes(x=Paris_Agreement, y=mining_value_2017)) +
+  geom_boxplot(mapping = aes(group = cut_width(Paris_Agreement, 2)))</code></pre>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/conventions-1.png" width="768" /> Based on our boxplot, there appears to be a relationship between Paris_Agreement and mining_value_2017. It appears that countries who joined the Paris Agreement earlier tend to have a lower mining value on average. This is consistent with the idea that countries' participation in treaties and conventions may be an indication of their willingness to rely on renewable energy sources.</p>
+</div>
 </div>
 <div id="training-and-test-data" class="section level2">
 <h2>Training and Test Data</h2>
@@ -1417,7 +1539,7 @@ summary(beta_model)</code></pre>
 ## Sampler summary:
 ## -
 ## DIC = -319.5839 logLik = 179.1992 pd = 38.8144
-## runtime = 29.723
+## runtime = 36.529
 ## ---
 ## Optimizer summary:
 ## -
