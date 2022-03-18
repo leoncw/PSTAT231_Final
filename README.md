@@ -9,7 +9,7 @@ If running this folder locally, a number of dependencies may need to be installe
 -The data dictionary provides a summary of the variables used in the modeling stections from the global environmental indicators data set. <br>
 -The intermediate data folder contains data saved at intermediate stages in the Final_Project_html_Broderick_Weinberg.Rmd file. <br>
 -The model output folder saves some output from models that either is intensive to rerun (and hence was saved once so that the Rmarkdown knitting was not a problem) OR compiled poorly during the knitting process, but runs fine locally.<br>
-- The Rmd folder contains code related to the different sections of the report. NOTE THAT THE FINAL VERSION OF THE CODE IS IN Final_Project_html_Broderick_Weinberg.Rmd, and the versions in Rmd have been slightly altered in most cases after being added to the final report<br>
+-The Rmd folder contains code related to the different sections of the report. NOTE THAT THE FINAL VERSION OF THE CODE IS IN Final_Project_html_Broderick_Weinberg.Rmd, and the versions in Rmd have been slightly altered in most cases after being added to the final report<br>
 
 Final_Project_html_Broderick_Weinberg.Rmd is the final product of this report, and is published as a knitted html file: Final_Project_html_Broderick_Weinberg.html. It is currently available online at https://leoncw.github.io/PSTAT231_Final/Final_Project_html_Broderick_Weinberg.html.<br>
 
