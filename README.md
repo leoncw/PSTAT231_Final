@@ -1,37 +1,19 @@
-## Welcome to GitHub Pages
+## README
 
-You can use the [editor on GitHub](https://github.com/leoncw/PSTAT231_Final/edit/main/README.md) to maintain and preview the content for your website in Markdown files.
+This project was completed March 18th, 2022 for course credit for PSTAT 131/231 at the University of California Santa Barbara.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+If running this folder locally, a number of dependencies may need to be installed, see the libraries subsection. This project is designed to be run from RStudio. Publication of the output uses the knitr package. Stylization of the .html output relies on the development version of the rmdformats package. The development version of this package is necessary as the current stable Cran version (as of 3/18/2022) does not correctly implement code-folding when publishing to .html file.
 
-### Markdown
+-The raw_data folder contains data from the global environmental indicators dataset on kaggle: https://www.kaggle.com/ruchi798/global-environmental-indicators. In theory, this data could be edited in the future. Therefore a local copy is stored in raw_data, instead of directly accessing it from the project. 
+-The crosswalks folder contains crosswalk files to match the countries from different .csv files in the raw data. 
+-The data dictionary provides a summary of the variables used in the modeling stections from the global environmental indicators data set.
+-The intermediate data folder contains data saved at intermediate stages in the Final_Project_html_Broderick_Weinberg.Rmd file. 
+-The model output folder saves some output from models that either is intensive to rerun (and hence was saved once so that the Rmarkdown knitting was not a problem) OR compiled poorly during the knitting process, but runs fine locally.
+- The Rmd folder contains code related to the different sections of the report. NOTE THAT THE FINAL VERSION OF THE CODE IS IN Final_Project_html_Broderick_Weinberg.Rmd, and the versions in Rmd have been slightly altered in most cases after being added to the final report
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+Final_Project_html_Broderick_Weinberg.Rmd is the final product of this report, and is published as a knitted html file: Final_Project_html_Broderick_Weinberg.html. It is currently available online at https://leoncw.github.io/PSTAT231_Final/Final_Project_html_Broderick_Weinberg.html.
 
-```markdown
-Syntax highlighted code block
+If running this projectly locally, the entire folder should be downloaded. Then the following line (line 24) of Final_Project_html_Broderick_Weinberg.html should be changed to match your local directly:
+knitr::opts_knit$set(root.dir = "/home/clw/Documents/UCSB/Quarter6/PSTAT 231/Final Project/PSTAT231_Final")
 
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/leoncw/PSTAT231_Final/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+(note the above requires the knitr package and assumes the user is using RStudio)
