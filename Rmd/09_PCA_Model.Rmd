@@ -1,0 +1,195 @@
+---
+title: "09_PCA Model"
+author: "Callum Weinberg"
+date: "March 9, 2022"
+output:
+  html_document:
+    code_folding: show
+  html_notebook:
+    code_folding: show
+bibliography: works_cited.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# This is necessary given the nested directories.
+# Enter your working directory here
+knitr::opts_knit$set(root.dir = "/home/clw/Documents/UCSB/Quarter6/PSTAT 231/Final Project/PSTAT231_Final")
+```
+
+# library 
+
+```{r, warning = FALSE}
+library(knitr)
+library(tidyr)
+library(plyr)
+library(dplyr)
+library(ggplot2)
+library(tibble)
+library(knitr)
+library(cowplot)
+library(pls)
+library(stringr)
+```
+
+# Load the Data
+
+```{r load_data}
+## Load the Data from the 02 File
+load(file="Intermediate_Data/03_model_data.Rdata")
+```
+
+# Create Training and Test sets:
+```{r train_test split}
+# Set Seed for Reproducibility
+set.seed(42)
+
+# training set 80% of original data
+train = sample(nrow(model_data), .8*(nrow(model_data)))
+x.train = model_data[train, ]
+y.train = model_data[train, ]$renewable_percent_2017
+# test set remaining 20% of original data
+x.test = model_data[-train, ]
+y.test = model_data[-train, ]$renewable_percent_2017
+```
+
+The previous two models are linear models. One issue with linear models is if multiple covariates are highly correlated, then the leas squares estimates tend to be unstable. The coefficients may change a lot due to the exclusion or inclusion of one variable. A potential solution to this problem is principal component regression.
+
+Principal component regression is based on finding the principal components of the training data. The principal components are found as followed: each column of the $X$ matrix (the predictors) is centered at 0. They are also often scaled to be unit variance. If this is not done and the variance of any of the predictors is significantly different, the results will be skewed towards predictors with larger variance (and often larger units or values). After that is done, the covariance matrix of the $X$ data is found. The eigenvalues and eigenvectors of the covariance matrix are found. The eigenvalues and their corresponding eigenvectors are sorted decreasing by eigenvalue. A transformation matrix can then be made from the corresponding eigenvectors (again, in order). The number of eigenvectors chosen depends on how many principal components are desired. This projection matrix can then be multiplied by the $X$ matrix, which projects the original data onto the chosen number of principal components. 
+
+These principal components have a numebr of desirable features. The process always reduces the dimension of the data by 1 dimension, and will reduce the dimension to the number of selected principal components. The principal components are designed in such a way that the first component has the most variance, then the second has less, and so on. The principal components are orthogonal by construction. These last two points make principal components very useful for analyzing correlated data. 
+
+Principal component regression takes the principal components and fits a regression model using least squares estimates. The number of components to be used in the regression is chosen. Choosing too many components may lead to overfitting (high variance) while choosing too few leaves useful information out of the model (high bias). Cross validation can be used to estimate the test error for each successive principal component, to choose the numebr of components with the lowest CV error. which will then hopefully lead to prediction with the lowest possible test error.
+
+The following model used for the principal component Regression. All predictors are considered in the model.
+```{r pca_regression_model_definition, class.source = 'fold-hide'}
+## Model formula.
+## y.train instead of renewable_percent 2017
+pca_regression_model = y.train ~ X2017_Population_World_Bank + X2017_Land_Area_km_2 + X2017_GDP_US_Dollars_World_Bank + 
+  CH4 + CO2 + GHG + NOx + energy_supply_petajoules + energy_intensity_2017 +
+  mining_value_2017 + percent_land_agricultural_2013 + nitrogen_consumption + phosphate_consumption +
+  potash_consumption + terrestrial_protected_areas + protected_areas_marine_terrestrial + forest_area_2015 + Basel_Convention +
+  CITES + Convention_on_Biological_Diversity + Kyoto__Protocol + Montreal_Protocol + Paris_Agreement + Ramsar_Convention + 
+  Rotterdam_Convention + Stockholm_Convention + UN_Convention_on_the_Law_of_the_Sea + UN_Convention_to_Combat_Desertification +
+  UN_Framework_Convention_on_Climate_Change + World__Heritage_Convention
+```
+
+The principal component regression model is fit below using the pcr package, which is designed for principal component regression and allows for cross validation. Noe that the data is scaled to unit variance, as discussed above. 10-fold cross validation is implemented.
+```{r pca_regression_model}
+set.seed(42)
+pca_regression = pcr(pca_regression_model, data = cbind(y.train,x.train), 
+                     scale = TRUE, validation = "CV", segments = 10)
+#summary(pca_regression)
+pca_regression_results = (capture.output(summary(pca_regression)))
+```
+
+The pcr package does not provide for easy extraction of CV errors and other information. The below code chunk does a bit of string cleaning to extract the values needed to analyze the model and select the optimal number of components.
+```{r pca_regression_extract_values, class.source = 'fold-hide'}
+# Get the Cross Validation for each Component
+pca_regression_CV1 = pca_regression_results[9]
+pca_regression_CV2 = pca_regression_results[12]
+pca_regression_CV = as.numeric(unlist(strsplit(str_remove_all(paste(pca_regression_CV1,pca_regression_CV2, sep = " "),"CV"), "\\s+")))
+pca_regression_CV = pca_regression_CV[2:32]
+
+# Get the % Variance Exmplaind for The Training Data
+pca_regression_VarX1 = pca_regression_results[17]
+pca_regression_VarX2 = pca_regression_results[20]
+pca_regression_VarX = as.numeric(unlist(strsplit(str_remove_all(paste(pca_regression_VarX1,pca_regression_VarX2, sep = " "),"X"), "\\s+")))
+
+# Get the % Variance Exmplaind for The Test Data
+pca_regression_VarY1 = pca_regression_results[18]
+pca_regression_VarY2 = pca_regression_results[21]
+pca_regression_VarY = as.numeric(unlist(strsplit(str_remove_all(paste(pca_regression_VarY1,pca_regression_VarY2, sep = " "),"y.train"), "\\s+")))
+
+# Input Data into Dataframe
+pca_regression_output = data.frame(Component = seq(0,30,by=1),
+                                               RMSEP = pca_regression_CV,
+                                               VarExplX = pca_regression_VarX,
+                                               VarExplY = pca_regression_VarY)
+```
+
+```{r pca_regression_plot_CV_VarExpl, class.source = 'fold-hide', warning= FALSE}
+# Plot of Root Mean Squared Test Error Plot
+ggplot(data = pca_regression_output, aes(x = Component, y = RMSEP)) +
+  geom_line() +
+  geom_hline(yintercept = min(pca_regression_output$RMSEP), 
+             color = "red", linetype = "dashed") +
+  scale_x_continuous(breaks = seq(0,30,by=1)) +
+  scale_y_continuous(breaks = seq(.3,.475,by=.025)) +
+  labs(title = "RMSE for Each Component\n10-Fold CV",
+       x="Principal Component",y="RMSE") + 
+  theme_minimal()
+
+# Plot of Percent of Variation Explained
+ggplot(data = pca_regression_output, aes(x = Component)) +
+  geom_line(aes(y = VarExplY, color = 'Y.Train')) +
+  geom_line(aes(y = VarExplX, color='X.Train')) +
+  scale_color_manual(name='Data',
+                     breaks=c('Y.Train', 'X.Train'),
+                     values=c('Y.Train'='red', 'X.Train'='black')) +
+  scale_x_continuous(breaks = seq(0,30,by=1)) +
+  labs(title = "Percent of Variance Explained for each Component\n10-Fold CV",
+       x="Principal Component",y="% of Variance Explained") + 
+  theme_minimal()
+```
+
+The above two plots indicate the results of cross validation. The first shows the cross validation RMSE for each additional component (the way the components are constructed, if all components up to the selected component are incoporated into the model). The CV error, estimating test error, is minimized by a model with 8 components. Note the pcr package provides an Adjusted Cross Validation metric as well: the results are about the same.
+
+The second plot shows the cumulative variance explained by each component. The black line is for the model data (the training predictors) and the red line is for the response (training renewable energy percentage). By construction, percent variance explained must arrive at 100\% by the final principal component for the training data. How quickly it arrives provides some sense of how many components are useful. For principal component analysis - an unsupervised learning model, this plot would be more important in determining the optimal number of components. Since the goal is prediction here, the RMSE is used to select the number of components. It appears that at 8 principal components, about 75\% of the variance in the training data is explained. The red line indicates how much of the variation in the response is explained by each component. There is no guarantee this will get close to 100\%. In this case it appears all the principal components can only explain about 25\% of the training response. This may suggest an upper limit of how well prediction will work both in this model, and in this report in general. Even when constructing orthogoal, variance maximizing components, renewable energy percentage is not that related to the data.
+
+Prediction is performed in the code chunk below.
+
+```{r pca_regression_prediction, warning = FALSE}
+# Make Prediction with Optimal number of Components
+pcr_regression_pred = predict(pca_regression, x.test, ncomp = 8)
+
+# Calculate Mean Squared Error and Mean Absolute Error
+pcr_regression_rmse = sqrt(mean((y.test-pcr_regression_pred)^2))
+pcr_regression_mae = mean(abs(y.test-pcr_regression_pred))
+
+# Calculate Bias
+pcr_regression_fit = predict(pca_regression, newdata = x.train, ncomp = 8)
+pcr_regression_bias = mean(pcr_regression_fit - y.train)
+
+# Output
+paste0("PCA Regression RMSE: ",round(pcr_regression_rmse,4), "; ",
+       "PCA Regression MAE: ",round(pcr_regression_mae,4), "; ",
+       "PCA Regression Bias: ",round(pcr_regression_bias,6))
+```
+
+The test RMSE of the PCA regression model is .2756. The MAE is .2278. And the bias is very small. 
+
+The below graph compares predicted values and the test values.
+
+```{r pca_regression_prediction_graph, class.source = 'fold-hide'}
+# Create Data Frame with Countries, Predicted Values
+# And Actual Values
+pca_predict_graph_data = data.frame(observation = c(1:39),
+           prediction = as.vector(pcr_regression_pred),
+           actual = y.test,
+           Country = x.test$Country_Final)
+
+# Specifiy minimum and maxium in each case for plotting 
+# the line between points
+pca_predict_graph_data = pca_predict_graph_data %>%
+  mutate(min_value_col = pmin(prediction,actual)) %>%
+  mutate(max_value_col = pmax(prediction,actual)) %>%
+  mutate(Abs_Diff = abs(actual-prediction))
+
+# Plot the Predictions vs. Actual with difference lines and labels
+ggplot(data = pca_predict_graph_data, aes(x = observation, label = Country)) + 
+  geom_point(aes(y = prediction, color = 'Predicted')) +
+  geom_point(aes(y = actual, color='Actual')) +
+  geom_linerange(aes(ymin = min_value_col, ymax = max_value_col), 
+                col = "blue", linetype = "dashed", alpha = .5) +
+  geom_text(aes(y = actual), size = 2, vjust = -.5) +
+  labs(title = "Test Dataset Results for PCA Regression\n8 Components",
+       x="Country",y="Renewable Energy 2017 (%)") + 
+  scale_color_manual(name='Renewable % 2017',
+                     breaks=c('Actual', 'Predicted'),
+                     values=c('Actual'='black', 'Predicted'='red')) +
+  theme(legend.title=element_text(size=20), legend.text=element_text(size=14)) +
+  theme_minimal()
+```
+
+Like some of the other models, this model struggles to predict large renewable energy percentages, but performs reasonable well for countries under 50\% renewable energy. While this model will not have the lowest RMSE and will not be the top choice for prediction, the percent variation explained by each component is a useful metric. The fact that it tops out at 25\% for the training data suggests that renewable energy percentage may not be but so predictable by the covariates available after the data cleaning and limiation stage.
