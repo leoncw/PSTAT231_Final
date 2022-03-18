@@ -17,3 +17,5 @@ If running this projectly locally, the entire folder should be downloaded. Then 
 knitr::opts_knit$set(root.dir = "/home/clw/Documents/UCSB/Quarter6/PSTAT 231/Final Project/PSTAT231_Final")<br>
 
 (note the above requires the knitr package and assumes the user is using RStudio)
+
+Update:
