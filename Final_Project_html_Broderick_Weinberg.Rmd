@@ -29,7 +29,7 @@ knitr::opts_knit$set(root.dir = "/home/clw/Documents/UCSB/Quarter6/PSTAT 231/Fin
 
 # Introduction
 
-This report has been completed by Hailey Broderick and Callum Weinberg for PSTAT 131/231 in the Winter quarter of 2022 at the University of Santa Barbara. For course credit, the report has been submitted to Gauchospace, along with the structured folder which contains the raw data, additional markdown files (the necessary code is available below unless otherwise stated, but these may show some extra work), a codebook/data dictionary, data crosswalks, intermediate data files, a works cited document (called "works_cited.bib"), and the RMd file that creates this HTML file. If accessing this project via online interface, the materials can be found here: https://github.com/leoncw/PSTAT231_Final. The web hosted version of this HTML document can be found HERE (INSERT THIS).
+This report has been completed by Hailey Broderick and Callum Weinberg for PSTAT 131/231 in the Winter quarter of 2022 at the University of Santa Barbara. For course credit, the report has been submitted to Gauchospace, along with the structured folder which contains the raw data, additional markdown files (the necessary code is available below unless otherwise stated, but these may show some extra work), a codebook/data dictionary, data crosswalks, intermediate data files, a works cited document (called "works_cited.bib"), and the RMd file that creates this HTML file. If accessing this project via online interface, the materials can be found here: https://github.com/leoncw/PSTAT231_Final. The web hosted version of this HTML document can be found here: https://leoncw.github.io/PSTAT231_Final/Final_Project_html_Broderick_Weinberg.html.
 
 The primary purpose of this project and the course final assignment was to take a dataset and fit models to predict values of a variable. Specifically, the prediction is perfomed on a known variable (i.e. this is a supervised learning project) and a test data set is used to evaluate the performance of the models. Performing inferential statistics on the models was not the primary purpose of this project, but is discussed at times in the report.
 
@@ -150,10 +150,15 @@ library(bamlss)
 library(cowplot)
 library(glmnet)
 library(gbm)
+library(tree)
+library(maptree)
+library(randomForest)
 library(tibble)
 library(forcats)
 library(pls)
 library(stringr)
+library(ISLR)
+library(glmnet)
 library(rmdformats) # Using developmental version
 ```
 
@@ -1106,7 +1111,126 @@ This graph illustrates what occurs after interpolating the missing values in the
 
 ## Exploratory Data Analysis
 
-[Fill In]
+We preform exploratory data analysis in order to gain insight on the statistical properties of our data. This will allow us to better understand and visualize the relationships between our response and certain predictors which may be of higher importance for our data, as well as the relationships between predictors themselves. We preform EDA on our training set which consist of 156 observations and 34 variables.
+
+We begin our analysis by loading the data into R and using glimpse() to look at the variables in our dataset.
+```{r glimpse_data}
+glimpse(model_data)
+```
+Our cleaned data contains 195 observations of 34 variables. Since our goal is to predict renewable energy percentage in 2017 for a given country, our response variable is renewable_percent_2017, and the remaining 31 variables are the predictors which we will use to build our models (excluding Country name and ID).
+
+Looking at the variables in our dataset, we see that Country_Final is a categorical variable, which indicates the country corresponding to the observation. Country_Final_ID is a numeric variable, although it is another form of Country identification, so its value represents a categorical variable as well. These variables won't directly influence renewable electricity production percentage, but will instead be an indicator for observations. In addition, we note that energy_supply_petajoules and energy_supply_2017 represent the same variables, thus we will choose to exclude energy_supply_2017 for the remainder of the project. We subset the data, removing these variables, before proceeding to analysis.
+
+```{r subset_model_data}
+subset_data = model_data %>%
+  select(-c(Country_Final, Country_ID_Final, energy_supply_2017))
+```
+
+We are interested in predicting the percentage of a country's total electricity production composed of renewable energy. In achieving accurate predictions, we would hope to draw conclusions about where countries should aim their resources/focus in order to raise renewable electricity production as a percentage of their total electricity production. This information would be beneficial because it could provide an indication of the best way to invest in renewable electricity sources, versus nonrenewable electricity sources, which pose a threat to our climate and precious resources.
+
+#### Response Variable Distribution
+
+We first plot a histogram of our response variable of interest, renewable energy percentage, in order to examine its distribution.
+```{r EDA_1}
+# Histogram of renewable electricity production percentage to check distribution
+ggplot(data=model_data, aes(x=renewable_percent_2017, y=..density..)) +
+       geom_histogram(bins=10, color="white")
+```
+Based on the histogram of our response variable, renewable_percent_2017, we see that its probability distribution is heavily skewed right. Since the data is skewed, the best measure of the center of renewable_percent_2017 is the median. The right skew of the distribution means that it is more common for countries to have a lower renewable energy percentage (less than 50%). It is interesting to note that this probability seems to steadily decrease, increasing slightly at the tail end for 100% renewable energy production percentage. 
+
+#### Country Population, Land Area, and GDP Scatterplots 
+
+Logically, the three variables which seem to most obviously differentiate countries are: Country Population (X2017_Population_World_Bank), Country land area measured in $km^2$ (X2017_Land_Area_km_2), and Country GDP measured in US dollars (X2017_GDP_US_Dollars_World_Bank). We would like to see if there is a direct correlation between these continuous variables and our response variable, renewable_percent_2017, by producing scatter plots with geom_point(). Initial plotting was difficult to make out since these variables are very large, thus we take a log transformation of these variables to properly scale them prior to making scatter plots.
+
+We use the ggplot2 package in order to create plots. Function geom_point() is used to make scatter plots.
+```{r EDA_2}
+# transform large variables to scale via log transformation
+transform1 = subset_data %>%
+  mutate_at(.vars=c(2:4), .funs=log)
+
+# scatter plot response vs Population
+ggplot(data=transform1, mapping = aes(x=renewable_percent_2017, y=X2017_Population_World_Bank)) +
+  geom_point() +
+  geom_smooth()
+
+# scatter plot response vs Land Area
+ggplot(data=transform1, mapping = aes(x=renewable_percent_2017, y=X2017_Land_Area_km_2)) +
+  geom_point() +
+  geom_smooth()
+
+# scatter plot response vs GDP
+ggplot(data=transform1, mapping = aes(x=renewable_percent_2017, y=X2017_GDP_US_Dollars_World_Bank)) +
+  geom_point() +
+  geom_smooth()
+```
+Based on our scatter plots of the three variables vs renewable energy percentage, we conclude that there is no significant correlation between renewable energy production percentage and a country's relative Population, GDP, or Land Area. Thus, we reject the notion that renewable energy percentage can be predicted based solely on these predictors.
+
+#### Emissions Variables Relationships (CH4, CO2, GHG, NOx)
+
+Next, we would like to see if there exists any relation between emission output variables CH4, CO2, GHG, and NOx, and other predictors. Emissions signal mass production of energy, both harmful and natural. We hypothesize that such emissions could be related to the variables.
+
+Upon plotting our data, we discovered that the emissions variables CH4, CO2, GHG, and NOx must be scaled in order to properly see relationships, as the values can be quite large. Thus, we decide to transform the emissions variables via a log transformation prior to making our plots.
+
+
+Logically, we assume that a higher amount of emissions for each country would correspond with a larger populations. CH4 is methane, which is used to produce light and heat. Thus, a larger should result in greater CH4 outputs from human activity which produces light and heat. We will test this hypothesis by looking at the correlation between CH4 and Population:
+```{r EDA_CH4, warning = FALSE}
+transform2 = transform1 %>%
+  mutate_at(.vars=c(5:8), .funs=log)
+
+# boxplot
+ggplot(data=transform2, mapping = aes(x=X2017_Population_World_Bank, y=CH4)) +
+  geom_boxplot(mapping = aes(group = cut_width(X2017_Population_World_Bank, 3)))
+```
+There appears to be a clear positive correlation between population and CH4 emission levels. This provides evidence that our hypothesis may be considered, larger populations result in higher levels of CH4 emisions. Note there do exist outliers for populations with smaller populations than output higher than expected levels of CH4.
+
+
+Next, we wish to check the relation between CO2 emissions and total energy supply (energy_supply_petajoules). CO2 emissions come from many sources, but human generation of energy (i.e. burning fossil fuels) is a huge source of contribution to CO2 emission levels. We suspect there may be a correlation between energy supply (from all sources, not just renewable) and CO2 emissions.
+```{r EDA_CO2, warning = FALSE}
+transform2 = transform2 %>%
+  mutate(energy_supply_petajoules = log(energy_supply_petajoules))
+# boxplot
+ggplot(data=transform2, mapping = aes(x=energy_supply_petajoules, y=CO2)) +
+  geom_boxplot(mapping = aes(group = cut_width(x=energy_supply_petajoules, 3)))
+```
+Based on our boxplot of energy_supply_petajoules vs CO2 emissions, it appears that there is a high correlation between these two variables. It appears that in general, larger supplies of energy correspond with rising levels of CO2 emissions. This is why it is important to increase percentages of renewable energy production, to limit the amount of CO2 generated by energy production.
+
+
+Green house gases (GHG) are another emission variables, which we believe may be correlated with land area, since GHG are mainly produced by naturally occurring sources, it is logical to assume that larger land area (X2017_Land_Area_km_2) may mean more GHG emissions.
+```{r EDA_GHG}
+# boxplot
+ggplot(data=transform2, mapping = aes(x=X2017_Land_Area_km_2, y=GHG)) +
+  geom_boxplot(mapping = aes(group = cut_width(X2017_Land_Area_km_2, 1)))
+```
+Based on our plots, there seems to be some positive correlation between GHG and land area, but not as extreme a correlation as the previous emission relationships which we observed.
+
+Nitrogen Oxide (NOx) is our final emission variable to examine. Nitrogen Oxide are harmful gases which are produced via burning fuel at high temperatures. Human activities such as construction and driving contribute to NOx emissions. Thus, we will venture to explore the relationship between GDP (X2017_GDP_US_Dollars_World_Bank) and NOx. We suspect there may exist a relationship since GDP corresponds to the value of goods produced/consumed in a country. A higher GDP should equate to higher production and consumption levels of goods, which we believe would increase NOx levels.
+```{r EDA_NOx, warning = FALSE}
+# boxplot
+ggplot(data=transform2, mapping = aes(x=X2017_GDP_US_Dollars_World_Bank, y=NOx)) +
+  geom_boxplot(mapping = aes(group = cut_width(X2017_GDP_US_Dollars_World_Bank, 1))) 
+```
+Looking at the resulting boxplot, there appears to be some positive correlation between GDP and NOx emissions, which begins to plateu as GDP increases. But we must note that there exist a number of outliers which may influence these results.
+
+#### Suspected Confounding Land Variables
+
+We suspect that Land Area measured in $km^{2}$ (X2017_Land_Area_km_2) and Forest area (forest_area_2015), may be confounding variables since forest area would be a subset of total land area, thus we make a correlation graph between the two continuous variables. In order to properly view our data in the correlation graph, we must preform log transformation on both variables in order to properly scale the data.
+
+```{r counfounding_vars_1}
+ggplot(data=model_data) +
+  geom_point(mapping = aes(x= log(X2017_Land_Area_km_2), y = log(forest_area_2015)), color="green4")
+```
+Based on the correlation graph, X2017_Land_Area_km_2 and forest_area_2015 exhibit linear behavior. Thus, there is a high positive correlation between these variables.
+
+#### Paris Climate Agreement
+
+Finally we wish to acknowledge variables which represent the year that a Country officially formalized their participation in a selection of environmental international treaties and conventions. These predictor variables may be of importance because they indicate the Country's desire to pursue measures to mitigate climate change. We hypothesize that an earlier year of formalizing participation in such conventions and treaties would result in a decrease in harmful environmental activities. We assume that countries who formalize their participation observe the importance of transitioning off of fossil fuels decreasing harmful emissions, and begin their transition sooner than other countries. We check if there exists a relationship between one of the most well-known Climate agreements, The Paris Climate Accord (Paris_Agreement), and a harmful environmental activity mining (mining_value_2017): 
+
+```{r conventions}
+ggplot(data=transform2, mapping = aes(x=Paris_Agreement, y=mining_value_2017)) +
+  geom_boxplot(mapping = aes(group = cut_width(Paris_Agreement, 2)))
+```
+Based on our boxplot, there appears to be a relationship between Paris_Agreement and mining_value_2017. It appears that countries who joined the Paris Agreement earlier tend to have a lower mining value on average. This is consistent with the idea that countries' participation in treaties and conventions may be an indication of their willingness to rely on renewable energy sources.
+
 
 
 ## Training and Test Data
@@ -1148,7 +1272,7 @@ summary(basic_model)
 remove(basic_model)
 ```
 
-The above linear model makes clear that there is no obvious relationship between these demographic variables and renewable energy percentage. None of the p-values are remotely close to significance. Therefore there is no justification for stratifying the samples based on any of these variables.
+The above linear model makes clear that there is no obvious relationship between these demographic variables and renewable energy percentage. None of the p-values are remotely close to significance. In the exploratory data analysis section, similar results were shown with the scatter plots between reenwable energy percentage and these variables. Therefore there is no justification for stratifying the samples based on any of these variables.
 
 ```{r response_histograms_split, class.source = 'fold-hide'}
 # Histogram of training renewable energy
@@ -1187,7 +1311,330 @@ Plots of the histograms for y.train and y.test indicate that the distributions o
 
 ## Model 1: Regularized Linear Model
 
-[Fill In]
+One model which we choose to build for our prediction is a linear regression model. Linear regression is one parametric method which we have learned. Since our response variable, renewable_percent_2017, is a quantitative variable, linear regression could be a good model for our data, under the following assumptions: there is a linear relationship between response and the predictors, errors of the model are i.i.d. normal random errors, and all observations follow this model. Since we have a relatively large number of predictors (30) relative to observations (195), the variance of our model may be quite large. Thus, to increase our prediction accuracy, we choose to use regularization methods in order to significantly reduce variance while only slightly increasing bias, leading to an overall decrease in MSE. In other words, regularization prevents overfitting. Regularization methods work by shrinking the coefficients of irrelevant variables for prediction accuracy towards zero. In selecting the most accurate linear regression model, we will preform both ridge regression and lasso regression. The main difference between these two methods is that ridge regularization can shrink estimates close to zero, whereas lasso regularization can shrink estimates to zero.
+
+To create our regularized regression models, we use the function glmnet(). Generally we want to standardize data prior to regularization, but glmnet() automatically scales variables. The function takes the arguments alpha which determines fit, and lambda determines the penalty applied to the norm of the coefficients, resulting in different model coefficients (and in turn models) depending on the lambda parameter specified.
+
+We begin by subsetting the data to exclude the variables Country_Final and Country_ID_Final, as the values of these variables are means of identifying observations, not values which should influence our model.
+```{r linear_model_data}
+# Subset of Data Excluding first three variables
+x.train_r = x.train[,4:34]
+x.test_r = x.test[,4:34]
+```
+
+#### Ridge Regression Model
+
+First we will apply the ridge regression regularization method in order to predict renewable_percent_2017 using all other variables as predictors.
+
+To initialize ridge regularization, we use the function glmnet() with argument alpha=0 to specify a ridge regression model fit to our training data. We implement the function over a full range of possible lambda values, since this is the parameter which must be tuned to determine our optimal ridge model. We plot the standardized coefficients for ridge regression with respect to the range of possible lambdas.
+```{r initial_ridge_model}
+# vector of 100 possible lambda parameter values
+lambda.list.ridge = 1000*exp(seq(0, log(1e-5), length = 100))
+# Fit ridge regression model to training set, with lambda parameter left to tune
+ridge.mod = glmnet(x.train_r, y.train, alpha=0, lambda = lambda.list.ridge)
+# plot standardized coefficients vs lambda values
+plot(ridge.mod, xvar="lambda", label=TRUE)
+```
+We see that depending on the choice of penalty parameter lambda, coefficients of the ridge regression model are regularized towards zero. Our goal in creating the optimal ridge regression model is to find the optimal value of lambda which produces coefficients which minimize MSE.
+
+
+We use cross validation to fold the training set into 10 folds (using k-fold CV function as defined in Homework 2). For each fold of the training data, we preform additional 5-fold CV via the cv.glmnet() to find the optimal value of lambda and resulting MSE for the corresponding validation sets. 
+```{r CV_training_ridge, warning = FALSE}
+# Create Model Matrix of the Training Data
+data.train = model.matrix(y.train ~ . , x.train_r)
+
+
+# k-fold CV function
+do.chunk.ridge <- function(chunkid, folddef, dat, ...){
+  # get training index
+  train_id = (folddef != chunkid)
+  # training set
+  dat.train.x = dat[train_id, ]
+  dat.train.y = x.train[train_id, ]$renewable_percent_2017
+  # validation set
+  dat.val.x = dat[-train_id, ]
+  dat.val.y = x.train[-train_id, ]$renewable_percent_2017
+  # vector possible lambda values
+  lambda.list.ridge = 1000  * exp(seq(0, log(1e-5), length = 100))
+  # train ridge regression model on training data
+  fit.ridge.train <- glmnet(dat.train.x, dat.train.y, alpha=0, lambda = lambda.list.ridge)
+  # 5-fold CV for optimal lambda
+  cv.out.ridge = cv.glmnet(dat.train.x, dat.train.y, alpha=0, folds=5)
+  bestlam.r = cv.out.ridge$lambda.min
+  # get predicted value on validation set
+  pred.ridge.val = predict(fit.ridge.train, s=bestlam.r, newx=dat.val.x)
+  # create data frame of validation errors
+  data.frame(fold = chunkid,
+             bestlam.r = cv.out.ridge$lambda.min,
+             val.MSE = mean((pred.ridge.val - dat.val.y)^2),
+             val.RMSE = sqrt(mean((pred.ridge.val - dat.val.y)^2)),
+             val.MAE = mean(abs(dat.val.y-pred.ridge.val)))
+}
+
+
+set.seed(42)
+# set k-fold to 10
+nfold=10
+# create folds
+folds = cut(1:nrow(x.train_r), breaks=nfold, labels=FALSE) %>% sample()
+# set vector to save validation error
+error.folds.r = NULL
+# perform 10-fold CV
+for (i in 1:10){
+  CV.r = do.chunk.ridge(chunkid=i, folddef=folds, dat=data.train)
+  error.folds.r = rbind(error.folds.r, CV.r)
+}
+
+error.folds.r
+optimal_lam_r1 = error.folds.r[2,]$bestlam.r
+```
+Based on the 10 folds of our training data, we see training fold 2 resulted in lowest validation MSE, indicating it's corresponding lambda = `r optimal_lam_r1` may be our optimal penalty parameter.
+
+We compare this lambda value selected from the folded training set, to the optimal lambda chosen by preforming 10-fold cross-validation on the entire training set, simply using the function cv.glment(). The plot of lambda values and corresponding MSEs is produced.
+```{r optimal_lambda_ridge, warning = FALSE}
+set.seed(42)
+# 5-fold CV
+cv.out.ridge = cv.glmnet(as.matrix(x.train_r), y.train, alpha=0, folds=10)
+plot(cv.out.ridge)
+abline(v = log(cv.out.ridge$lambda.min), col="green4", lwd=3, lty=2)
+# optimal lambda
+optimal_lam_r2 = cv.out.ridge$lambda.min
+```
+According to 10-fold CV preformed on the entire training set, the optimal value of tuning parameter lambda for our ridge regression model is `r optimal_lam_r2`.
+
+In order to choose which lambda value to use for our optimal ridge regression model, we fit two ridge regression models to our original training set for both values of lambda. 
+- Fit one is ridge.mod1 with lambda =`r optimal_lam_r1`
+- Fit two is ridge.mod2 with lambda = `r optimal_lam_r2`
+```{r compare_models_ridge}
+# fit ridge model 1
+ridge.mod1 = glmnet(x.train_r, y.train, alpha=0, lambda = optimal_lam_r1)
+ridge.train.pred1 = predict(ridge.mod1, s=optimal_lam_r1, newx=as.matrix(x.train_r))
+ridge.train.MSE1 = mean((ridge.train.pred1- y.train)^2)
+ridge.train.MSE1
+# fir ridge model 2
+ridge.mod2 = glmnet(x.train_r, y.train, alpha=0, lambda = optimal_lam_r2)
+ridge.train.pred2 = predict(ridge.mod2, s=optimal_lam_r2, newx=as.matrix(x.train_r))
+ridge.train.MSE2 = mean((ridge.train.pred2- y.train)^2)
+ridge.train.MSE2
+```
+Based on the predictions of the two ridge models, we see that ridge.mod1 with lambda=`r optimal_lam_r1` results in a slightly lower training MSE `r ridge.train.MSE1`, compared to training MSE `r ridge.train.MSE2` from ridge.mod2 with lambda=`r optimal_lam_r2`. This means that ridge.mod1 is slightly better fit to the training data.
+
+Thus, we choose tuning parameter `r optimal_lam_r1` to be the optimal lambda value to build our final ridge regression model.
+
+The coefficients for our optimally tuned ridge regression model are the following:
+```{r ridge_coeff}
+ridge.coeff = predict(ridge.mod1, type="coefficients", s=optimal_lam_r1)
+ridge.coeff
+```
+Our final ridge regression model has 30 coefficient estimates, some of these coefficient estimates appear to be very close to zero, but none are exactly zero.
+
+We now compute the training MSE and test MSE for our optimal ridge regression model:
+```{r ridge_MSE}
+ridge.train.pred = predict(ridge.mod1, s=optimal_lam_r1, newx=as.matrix(x.train_r))
+ridge.train.MSE = mean((ridge.train.pred - y.train)^2)
+ridge.train.MSE
+
+ridge.test.pred = predict(ridge.mod1, s=optimal_lam_r1, newx=as.matrix(x.train_r))
+ridge.test.MSE = mean((ridge.test.pred - y.test)^2)
+ridge.test.MSE
+```
+Our final ridge regression model based on the coefficient estimates produced by our optimally tuned lambda results in training MSE `r ridge.train.MSE`, and test MSE `r ridge.test.MSE`. The test MSE is lower than the training MSE, although both are relatively close to zero. This is promising and signals that our model preforms well on the test set.
+
+#### Lasso Regression Model
+
+We will now apply the lasso regularization method in order to predict renewable_percent_2017 using all other variables as predictors.
+
+To begin lasso regularization, we proceed in the same manner as ridge regularization, using the function glmnet() implemented over a full range of possible lambda parameters. The only difference occurs for the argument alpha, which we must set to alpha=1 to specify a lasso regression model. We plot the standardized coefficients versus the range of possible lambda values.
+```{r initial_lasso_model}
+set.seed(42)
+# vector of 100 possible lambda parameter values
+lambda.list.lasso = 2 * exp(seq(0, log(1e-4), length=100))
+# fit lasso regression model to training set, with lambda parameter left to tune
+lasso.mod <- glmnet(x.train_r, y.train, alpha=1, lambda=lambda.list.lasso)
+# plot standardized coefficients vs lambda values
+plot(lasso.mod, xvar="lambda", label=TRUE)
+```
+We see that as penalty parameter lambda increases, normalized coefficients of the lasso regression model are regularized down towards zero, eventually all becoming zero. Our goal in creating the optimal lasso regression model is to find the optimal value of lambda which produces coefficients that minimize prediction error.
+
+
+Again, we use cross validation to fold the training set into 10 folds as we did for ridge regression. For each fold of the training data, we preform additional 5-fold CV via the cv.glmnet() to find the optimal value of lambda and resulting MSE for the corresponding validation sets. 
+```{r CV_training_lasso}
+# design matrix of training data with response variable renewable_percent_2017
+data.train <- model.matrix(y.train ~ . , x.train_r)
+
+# k-fold CV function
+do.chunk.lasso <- function(chunkid, folddef, dat, ...){
+  # get training index
+  train_id = (folddef != chunkid)
+  # training set
+  dat.train.x = dat[train_id, ]
+  dat.train.y = x.train[train_id, ]$renewable_percent_2017
+  # validation set
+  dat.val.x = dat[-train_id, ]
+  dat.val.y = x.train[-train_id, ]$renewable_percent_2017
+  # vector possible lambda values
+  lambda.list.lasso = 2 * exp(seq(0, log(1e-4), length=100))
+  # train ridge regression model on training data
+  fit.lasso.train <- glmnet(dat.train.x, dat.train.y, alpha=1, lambda = lambda.list.lasso)
+  # 5-fold CV for optimal lambda
+  cv.out.lasso = cv.glmnet(dat.train.x, dat.train.y, alpha=1, folds=5)
+  bestlam.l = cv.out.lasso$lambda.min
+  # get predicted value on validation set
+  pred.lasso.val = predict(fit.lasso.train, s=bestlam.l, newx=dat.val.x)
+  # create data frame of validation errors
+  data.frame(fold = chunkid,
+             bestlam.l = cv.out.lasso$lambda.min,
+             val.MSE = mean((pred.lasso.val - dat.val.y)^2),
+             val.RMSE = sqrt(mean((pred.lasso.val - dat.val.y)^2)),
+             val.MAE = mean(abs(dat.val.y-pred.lasso.val)))
+}
+
+
+set.seed(42)
+# set k-fold to 10
+nfold=10
+# create folds
+folds = cut(1:nrow(x.train), breaks=nfold, labels=FALSE) %>% sample()
+# set vector to save validation error
+error.folds.l = NULL
+# perform 10-fold CV
+for (i in 1:10){
+  CV.l = do.chunk.lasso(chunkid=i, folddef=folds, dat=data.train)
+  error.folds.l = rbind(error.folds.l, CV.l)
+}
+
+error.folds.l
+optimal_lam_l1 = error.folds.l[4,]$bestlam.l
+```
+
+Based on the 10 folds of our training data, we see training fold 4 resulted in lowest validation MSE, indicating it's corresponding lambda = `r optimal_lam_l1` may be our optimal penalty parameter.
+
+
+We compare this lambda value selected from the folded training sets, to the optimal lambda chosen by preforming 10-fold cross-validation on the entire training set, simply using the function cv.glment(). The plot of lambda values and corresponding MSEs is produced.
+```{r optimal_lambda_lasso}
+set.seed(42)
+# 10-fold CV on training set
+cv.out.lasso = cv.glmnet(as.matrix(x.train_r), y.train, alpha=1, folds=10)
+plot(cv.out.lasso)
+abline(v = log(cv.out.lasso$lambda.min), col="green4", lwd=3, lty=2)
+# optimal lambda
+optimal_lam_l2 = cv.out.lasso$lambda.min
+```
+The optimal lambda parameter selected for our lasso model by preforming 10-fold CV on our entire training set is `r optimal_lam_l2`.
+
+
+In order to choose which tuning parameter lambda to use for our optimal lasso regression model, we fit two lasso models to our original training set for both values of lambda. 
+- Fit one is lasso.mod1 with lambda =`r optimal_lam_l1`.
+- Fit two is lasso.mod2 with lambda = `r optimal_lam_l2`.
+```{r compare_models_lasso}
+# fit ridge model 1
+lasso.mod1 = glmnet(x.train_r, y.train, alpha=1, lambda = optimal_lam_l1)
+lasso.train.pred1 = predict(lasso.mod1, s=optimal_lam_l1, newx=as.matrix(x.train_r))
+lasso.train.MSE1 = mean((lasso.train.pred1- y.train)^2)
+lasso.train.MSE1
+# fir ridge model 2
+lasso.mod2 = glmnet(x.train_r, y.train, alpha=1, lambda = optimal_lam_l2)
+lasso.train.pred2 = predict(lasso.mod2, s=optimal_lam_l2, newx=as.matrix(x.train_r))
+lasso.train.MSE2 = mean((lasso.train.pred2- y.train)^2)
+lasso.train.MSE2
+```
+Based on the predictions of the two lasso models, we see that lasso.mod1 with lambda=`r optimal_lam_l1` results in a slightly lower training MSE `r lasso.train.MSE1`, compared to training MSE `r lasso.train.MSE2` from lasso.mod2 with lambda=`r optimal_lam_l2`. This means that lasso.mod1 is slightly better fit to the training data.
+
+Thus, we choose tuning parameter `r optimal_lam_l1` to be the optimal lambda value to build our final lasso regression model.
+
+The coefficients for our optimally tuned lasso regression model are the following:
+```{r lasso_coeff}
+lasso.coeff = predict(lasso.mod1, type="coefficients", s=optimal_lam_l1)
+lasso.coeff
+```
+Our final lasso model has 19 out of 30 coefficients set to zero. The lasso model is more sparse compared to the ridge regression model, this could be advantageous in our prediction and analysis. 
+
+
+We now compute the training MSE and test MSE for our optimal lasso regression model:
+```{r lasso_MSE}
+# training MSE
+lasso.train.pred = predict(lasso.mod1, s=optimal_lam_l1, newx=as.matrix(x.train_r))
+lasso.train.MSE = mean((lasso.train.pred - y.train)^2)
+lasso.train.MSE
+# test MSE
+lasso.test.pred = predict(lasso.mod1, s=optimal_lam_l1, newx=as.matrix(x.test_r))
+lasso.test.MSE = mean((lasso.test.pred - y.test)^2)
+lasso.test.MSE
+```
+Our final lasso model results in training MSE `r lasso.train.MSE`, and test MSE `r lasso.test.MSE`. The training MSE is higher than the test MSE for our lasso model, meaning that our model preforms better on the test data than the data which it was fit to, which is positive because it signals that our lasso model is not overfit to the training data.
+
+#### Optimal Regression Model
+
+Now that we have selected two final regression models found via regularization methods, ridge and lasso, we compare the models to choose our optimal linear regression model.
+
+Compute test mean square errors:
+```{r MSE}
+# mse for ridge model on test data
+ridge.test.pred = predict(ridge.mod1, s=optimal_lam_r1, newx=as.matrix(x.test_r))
+MSE.r = mean((ridge.test.pred - y.test)^2)
+MSE.r
+# mse for lasso model on test data
+lasso.test.pred = predict(lasso.mod1, s=optimal_lam_l1, newx=as.matrix(x.test_r))
+MSE.l = mean((lasso.test.pred - y.test)^2)
+MSE.l
+```
+Compute test root mean square errors:
+```{r RMSE}
+# root mse for ridge model on test data
+RMSE.r = sqrt(ridge.test.MSE)
+RMSE.r
+# root mse for lasso model on test data
+RMSE.l = sqrt(lasso.test.MSE)
+RMSE.l
+```
+Compute test root mean absolute errors:
+```{r MAE}
+# mean absolute error for ridge model on test data
+MAE.r = mean(abs(y.test-ridge.test.pred))
+MAE.r
+# mean absolute error for lasso model on test data
+MAE.l = mean(abs(y.test-lasso.test.pred))
+MAE.l
+```
+Based on our evaluations of different metrics of accuracy, we see that both our final ridge and lasso regression models preform very closely on the test data. Our ridge model preforms slightly better on the test set measured on all metrics of accuracy. 
+
+-Our final ridge model has test errors: MSE `r MSE.r`, RMSE `r RMSE.r`, and MAE `r MAE.r`
+-Our final lasso model has test errors: MSE `r MSE.l`, RMSE `r RMSE.l`, and MAE `r MAE.l`
+
+Since our lasso model uses significantly less predictors in its model (11 compared to 30), and has test MAE almost identical compared to the ridge model, it would be advantageous to use the lasso model in this setting, since we gain interpretability with much loss of accuracy. Thus, our optimal linear regression model chosen via regularization methods is the lasso model.
+
+Finally, we plot the predictions for our lasso model on the test set versus the actual values in order to visualize how well our model preformed. The code used to produce this plot was created by Callum Weinberg, and slightly altered for our lasso model.
+```{r lasso_model_prediction_graph}
+lasso.test.pred = predict(lasso.mod1, s=optimal_lam_l1, newx=as.matrix(x.test_r))
+# Create Data Frame with Countries, Predicted Values
+# And Actual Values
+lasso_predict_graph_data = data.frame(observation = c(1:39),
+                                      s1 = lasso.test.pred,
+                                      actual = y.test,
+                                      Country = x.test$Country_Final)
+# Specifiy minimum and maxium in each case for plotting 
+# the line between points
+lasso_predict_graph_data = lasso_predict_graph_data %>%
+  mutate(min_value_col = pmin(s1,actual)) %>%
+  mutate(max_value_col = pmax(s1,actual)) %>%
+  mutate(Abs_Diff = abs(actual-s1))
+# Plot the Predictions vs. Actual with difference lines and labels
+ggplot(data = lasso_predict_graph_data, aes(x = observation, label = Country)) + 
+  geom_point(aes(y = s1, color = 'Predicted')) +
+  geom_point(aes(y = actual, color='Actual')) +
+  geom_linerange(aes(ymin = min_value_col, ymax = max_value_col), 
+                col = "blue", linetype = "dashed", alpha = .5) +
+  geom_text(aes(y = actual), size = 2, vjust = -.5) +
+  labs(title = "Test Dataset Results for Lasso Regression Model",
+       x="Country",y="Renewable Energy 2017 (%)") + 
+  scale_color_manual(name='Renewable % 2017',
+                     breaks=c('Actual', 'Predicted'),
+                     values=c('Actual'='black', 'Predicted'='red')) +
+  theme(legend.title=element_text(size=20), legend.text=element_text(size=14)) +
+  theme_minimal()
+```
+It is clear that our lasso model struggles to predict renewable energy percentage for countries which have relatively high renewable energy percentages (above 50%) as well as countries with low renewable energy percentages close to zero. Our lasso models' prediction values primarily fall between 10% and 50%, which poses a challenge in prediction since we hope to accurately predict the full range of renewable percentages.
+
 
 
 ## Model 2: Regularized Beta Regression Model
@@ -1540,6 +1987,110 @@ remove(pca_regression_output, pcr_regression_pred, pcr_regression_fit,
 
 
 ## Model 4: Random Forest
+
+
+Now, we apply random forests to our data in order to predict renewable_percent_2017. In doing so, we will investigate how the features of our data set influence the renewable energy percentage generated by a Country. Since our response variable, renewable_percent_2017 is a continuous variable, we will build a Random Forest Regression Model. The randomForest package will be used to produce our Random Forest Model. Random Forests are beneficial to use over single decision trees, because they aggregate many deep trees (resulting in lower variance for error), in order to avoiding overfitting which tends to occur for single decision trees. The random forest method creates a plethora of decision trees fit on the training set, with a subset of different predictors used for the trees creating the random forest. The random forest makes predictions by averaging the decisions of the many individual trees which make up the random forest.
+
+To build a random forest of regression trees, the number of predictors that should be considered for each split is $p/3$, where $p$ is the number of predictors ($p/3$ the argument used to specify regression trees). In our case, the data we use for the random forest has $p=30$ predictors, thus  $30/3 = 10$ predictors should be considered for each split of the tree. This parameter is specified in our model by mtry=10. The number of trees grown by randomForest() is specified by the argument ntree (by default for our model ntree=500). 
+```{r rf_regression}
+# Subset of Data Excluding first three variables
+x.train_r = x.train[,4:34]
+x.test_r = x.test[,4:34]
+
+set.seed(42)
+RF.regression <- randomForest(y.train ~ . , data=x.train_r, mtry=10, importance=TRUE)
+plot(RF.regression)
+```
+500 trees is reasonable (and default) as we see that the MSE of the random forest model is relatively steady near zero after approximately 200 trees. 
+
+
+Although cross-validation is inherently contained in the random forest method itself, we preform 5-fold cv on the training set to show an example of how the number of variables included selected for each tree affects the error of our folded training data.
+```{r CV_random_forest}
+# Set Seed for Reproducibility
+set.seed(42)
+# design matrix necessary to use rfcv() random forest cross-validation function
+# https://stackoverflow.com/questions/19760169/how-to-perform-random-forest-cross-validation-in-r
+RF.cv <- rfcv(x.train_r, y.train, cv.fold=5)
+with(RF.cv, plot(n.var, error.cv))
+```
+Cross-validation preformed on the training data reveals that varying the number of predictors selected for each split in our random forest model influences the error of the respective random forest models. The plot confirms that prediction errors should be smallest around 10 predictors used for each split. mtry=10 is the number of predictors which we specify in our random forest model, which signifies regression for random forests.
+
+
+We will use our random forest model RF.regression with mtry=10 and ntree=500 as our final random forest model.
+Look at the order of important variables for our random forest regression model:
+```{r rf_regression_importance, fig.height=8, fig.width=10}
+importance(RF.regression)
+varImpPlot(RF.regression, n.var=20)
+```
+Based on the plot of the importance of variables in our random forests decision making, we note that forest_area_2015, CO2, protected_areas_marine_terrestrial, and NOx are among the top most important variables. This is decided because when these predictors are not included in decision trees, MSE is increased by over 6%. This points to emissions variables and land varibales being the most important predictors
+
+Our random forest model is fit to both training and test sets in order to calculate the error of their predictions.
+```{r mse_rf}
+# training MSE
+RF.train.pred = predict(RF.regression, newdata=x.train_r)
+RF.train.MSE = mean((RF.train.pred - y.train)^2)
+
+# test MSE
+RF.test.pred = predict(RF.regression, newdata=x.test_r)
+RF.test.MSE = mean((RF.test.pred - y.test)^2)
+
+```
+Thus, our random forest regression model is has training MSE `r RF.train.MSE`, and test MSE `r RF.test.MSE`. Thus, our random forest regression model is better fit to the training data than the test data. Both training and test MSE are relatively close to zero, which means that the model has some prediction accuracy on the test set.
+
+
+We now calculate different metrics of accuracy in order to compare our random forest regression model's performance with other models considered throughout the report.
+
+Compute and compare test MSE, RMSE, and MAE:
+```{r rf_evaluation}
+# test mse for RF  model on test data
+RF.test.pred = predict(RF.regression, newdata=x.test_r)
+RF.test.MSE = mean((RF.test.pred - y.test)^2)
+RF.test.MSE
+# test root mse 
+RF.test.RMSE = sqrt(RF.test.MSE)
+RF.test.RMSE
+# mean absolute error for RF on test data
+RF.MAE = mean(abs(y.test-RF.test.pred))
+RF.MAE
+```
+The resulting test errors made by our RF model are: MSE = `r RF.test.MSE` , RMSE = `r RF.test.RMSE` , and MAE = `r RF.MAE`.
+
+The mean absolute error of our random forest regression model is `r RF.MAE` which is an okay mean absolute error. This type of model does not seem to be ideal for our prediction needs, but it may be able to predict with some accuracy.
+
+Finally, we plot the predictions for our random forest model on the test set versus the actual values in order to visualize how well our model preformed. The code used to produce this plot was created by Callum Weinberg, and slightly altered for our random forest model.
+```{r rf_model_prediction_graph}
+set.seed(42)
+RF.test.pred = as.matrix(predict(RF.regression, newdata=x.test_r))
+RF.test.pred
+# Create Data Frame with Countries, Predicted Values
+# And Actual Values
+RF.test.pred
+RF_predict_graph_data = data.frame(observation = c(1:39),
+                                      V1 = RF.test.pred,
+                                      actual = y.test,
+                                      Country = x.test$Country_Final)
+# Specifiy minimum and maxium in each case for plotting 
+# the line between points
+RF_predict_graph_data = RF_predict_graph_data %>%
+  mutate(min_value_col = pmin(V1,actual)) %>%
+  mutate(max_value_col = pmax(V1,actual)) %>%
+  mutate(Abs_Diff = abs(actual-V1))
+# Plot the Predictions vs. Actual with difference lines and labels
+ggplot(data = RF_predict_graph_data, aes(x = observation, label = Country)) + 
+  geom_point(aes(y = V1, color = 'Predicted')) +
+  geom_point(aes(y = actual, color='Actual')) +
+  geom_linerange(aes(ymin = min_value_col, ymax = max_value_col), 
+                col = "blue", linetype = "dashed", alpha = .5) +
+  geom_text(aes(y = actual), size = 2, vjust = -.5) +
+  labs(title = "Test Dataset Results for Random Forest Regression Model",
+       x="Country",y="Renewable Energy 2017 (%)") + 
+  scale_color_manual(name='Renewable % 2017',
+                     breaks=c('Actual', 'Predicted'),
+                     values=c('Actual'='black', 'Predicted'='red')) +
+  theme(legend.title=element_text(size=20), legend.text=element_text(size=14)) +
+  theme_minimal()
+```
+Our random forest regression model has difficulty predicting renewable energy percentage for countries which have relatively high renewable energy percentages (above 50%), but is sightly better at predicting countries with low renewable energy percentages close to zero. Our random forest model only predicts values renewable energy percenteges under 50%, this raises concerns about using a random forest model to best predict our data. It may be difficult to predict high renewable energy percentages due to fewer observations of high renewable energy percentage countries in our model data (skewed distribution).
 
 ## Model 5: Boosted Trees
 

@@ -93,9 +93,17 @@ Our random forest model is fit to both training and test sets in order to calcul
 # training MSE
 RF.train.pred = predict(RF.regression, newdata=x.train_r)
 RF.train.MSE = mean((RF.train.pred - y.train)^2)
+<<<<<<< HEAD
 # test MSE
 RF.test.pred = predict(RF.regression, newdata=x.test_r)
 RF.test.MSE = mean((RF.test.pred - y.test)^2)
+=======
+
+# test MSE
+RF.test.pred = predict(RF.regression, newdata=x.test_r)
+RF.test.MSE = mean((RF.test.pred - y.test)^2)
+
+>>>>>>> ba5f7f4bb7951dbee9012fd740a317503212bd65
 ```
 Thus, our random forest regression model is has training MSE `r RF.train.MSE`, and test MSE `r RF.test.MSE`. Thus, our random forest regression model is better fit to the training data than the test data. Both training and test MSE are relatively close to zero, which means that the model has some prediction accuracy on the test set.
 
@@ -107,10 +115,20 @@ Compute and compare test MSE, RMSE, and MAE:
 # test mse for RF  model on test data
 RF.test.pred = predict(RF.regression, newdata=x.test_r)
 RF.test.MSE = mean((RF.test.pred - y.test)^2)
+<<<<<<< HEAD
 # test root mse 
 RF.test.RMSE = sqrt(RF.test.MSE)
 # mean absolute error for RF on test data
 RF.MAE = mean(abs(y.test_r-RF.test.pred))
+=======
+RF.test.MSE
+# test root mse 
+RF.test.RMSE = sqrt(RF.test.MSE)
+RF.test.RMSE
+# mean absolute error for RF on test data
+RF.MAE = mean(abs(y.test_r-RF.test.pred))
+RF.MAE
+>>>>>>> ba5f7f4bb7951dbee9012fd740a317503212bd65
 ```
 The resulting test errors made by our RF model are: MSE = `r RF.test.MSE` , RMSE = `r RF.test.RMSE` , and MAE = `r RF.MAE`.
 
@@ -149,6 +167,10 @@ ggplot(data = RF_predict_graph_data, aes(x = observation, label = Country)) +
   theme(legend.title=element_text(size=20), legend.text=element_text(size=14)) +
   theme_minimal()
 ```
+<<<<<<< HEAD
 Our random forest regression model has difficulty predicting renewable energy percentage for countries which have relatively high renewable energy percentages (above 50%), but is sightly better at predicting countries with low renewable energy percentages close to zero. Our random forest model only predicts values renewable energy percentages under 50%, this raises concerns about using a random forest model to best predict our data. It may be difficult to predict high renewable energy percentages due to fewer observations of high renewable energy percentage countries in our model data (skewed distribution).
+=======
+Our random forest regression model has difficulty predicting renewable energy percentage for countries which have relatively high renewable energy percentages (above 50%), but is sightly better at predicting countries with low renewable energy percentages close to zero. Our random forest model only predicts values renewable energy percenteges under 50%, this raises concerns about using a random forest model to best predict our data. It may be difficult to predict high renewable energy percentages due to fewer observations of high renewable energy percentage countries in our model data (skewed distribution).
+>>>>>>> ba5f7f4bb7951dbee9012fd740a317503212bd65
 
 

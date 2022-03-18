@@ -24,7 +24,11 @@ One model which we choose to build for our prediction is a linear regression mod
 To create our regularized regression models, we use the function glmnet(). Generally we want to standardize data prior to regularization, but glmnet() automatically scales variables. The function takes the arguments alpha which determines fit, and lambda determines the penalty applied to the norm of the coefficients, resulting in different model coefficients (and in turn models) depending on the lambda parameter specified.
 
 We begin by loading our data and subsetting it to exclude the variables Country_Final and Country_ID_Final, as the values of these variables are means of identifying observations, not values which should influence our model. Duplicate variable energy_supply_2017 is also excluded.
+<<<<<<< HEAD
 ```{r model_data_load_subset}
+=======
+```{r load_data}
+>>>>>>> ba5f7f4bb7951dbee9012fd740a317503212bd65
 # load original model data
 load("~/Desktop/PSTAT231_Final/Intermediate_Data/03_model_data.Rdata")
 # subset data removing Country_Final and Country_ID_Final, since these variables are simply a way of identifying country of observation, not a number with meaning, a model.matrix would dummy code these variables, but we do not want them dummy coded as they are separate identification variables.
@@ -34,7 +38,11 @@ subset_data = model_data %>%
 
 
 We use model.matrix() to create a design matrix of data with renewable_percent_2017 as the response. We will split this data into training and test sets, which we will use to fit and evaluate the performance of our final ridge and lasso regression models.
+<<<<<<< HEAD
 ```{r design_matrix_regularization}
+=======
+```{r design_matrix}
+>>>>>>> ba5f7f4bb7951dbee9012fd740a317503212bd65
 # construct design matrix with renewable_percent_2017 as our response, using all other variables as predictors
 data.all <- model.matrix(renewable_percent_2017 ~ . , subset_data)
 # seed set to reproduce original training and test sets created, but taken from a matrix (necessary to use glmnet())
@@ -146,10 +154,18 @@ In order to choose which lambda value to use for our optimal ridge regression mo
 ridge.mod1 <- glmnet(x.train_r, y.train_r, alpha=0, lambda = optimal_lam_r1)
 ridge.train.pred1 = predict(ridge.mod1, s=optimal_lam_r1, newx=x.train_r)
 ridge.train.MSE1 = mean((ridge.train.pred1- y.train_r)^2)
+<<<<<<< HEAD
+=======
+ridge.train.MSE1
+>>>>>>> ba5f7f4bb7951dbee9012fd740a317503212bd65
 # fir ridge model 2
 ridge.mod2 <- glmnet(x.train_r, y.train_r, alpha=0, lambda = optimal_lam_r2)
 ridge.train.pred2 = predict(ridge.mod2, s=optimal_lam_r2, newx=x.train_r)
 ridge.train.MSE2 = mean((ridge.train.pred2- y.train_r)^2)
+<<<<<<< HEAD
+=======
+ridge.train.MSE2
+>>>>>>> ba5f7f4bb7951dbee9012fd740a317503212bd65
 ```
 Based on the predictions of the two ridge models, we see that ridge.mod1 with lambda=`r optimal_lam_r1` results in a slightly lower training MSE `r ridge.train.MSE1`, compared to training MSE `r ridge.train.MSE2` from ridge.mod2 with lambda=`r optimal_lam_r2`. This means that ridge.mod1 is slightly better fit to the training data.
 
@@ -167,9 +183,17 @@ We now compute the training MSE and test MSE for our optimal ridge regression mo
 ```{r ridge_MSE}
 ridge.train.pred = predict(ridge.mod1, s=optimal_lam_r1, newx=x.train_r)
 ridge.train.MSE = mean((ridge.train.pred - y.train_r)^2)
+<<<<<<< HEAD
 
 ridge.test.pred = predict(ridge.mod1, s=optimal_lam_r1, newx=x.test_r)
 ridge.test.MSE = mean((ridge.test.pred - y.test)^2)
+=======
+ridge.train.MSE
+
+ridge.test.pred = predict(ridge.mod1, s=optimal_lam_r1, newx=x.test_r)
+ridge.test.MSE = mean((ridge.test.pred - y.test)^2)
+ridge.test.MSE
+>>>>>>> ba5f7f4bb7951dbee9012fd740a317503212bd65
 ```
 Our final ridge regression model based on the coefficient estimates produced by our optimally tuned lambda results in training MSE `r ridge.train.MSE`, and test MSE `r ridge.test.MSE`. The test MSE is lower than the training MSE, although both are relatively close to zero. This is promising and signals that our model preforms well on the test set.
 
@@ -273,10 +297,18 @@ In order to choose which tuning parameter lambda to use for our optimal lasso re
 lasso.mod1 <- glmnet(x.train_r, y.train_r, alpha=1, lambda = optimal_lam_l1)
 lasso.train.pred1 = predict(lasso.mod1, s=optimal_lam_l1, newx=x.train_r)
 lasso.train.MSE1 = mean((lasso.train.pred1- y.train_r)^2)
+<<<<<<< HEAD
+=======
+lasso.train.MSE1
+>>>>>>> ba5f7f4bb7951dbee9012fd740a317503212bd65
 # fir ridge model 2
 lasso.mod2 <- glmnet(x.train_r, y.train_r, alpha=1, lambda = optimal_lam_l2)
 lasso.train.pred2 = predict(lasso.mod2, s=optimal_lam_l2, newx=x.train_r)
 lasso.train.MSE2 = mean((lasso.train.pred2- y.train_r)^2)
+<<<<<<< HEAD
+=======
+lasso.train.MSE2
+>>>>>>> ba5f7f4bb7951dbee9012fd740a317503212bd65
 ```
 Based on the predictions of the two lasso models, we see that lasso.mod1 with lambda=`r optimal_lam_l1` results in a slightly lower training MSE `r lasso.train.MSE1`, compared to training MSE `r lasso.train.MSE2` from lasso.mod2 with lambda=`r optimal_lam_l2`. This means that lasso.mod1 is slightly better fit to the training data.
 
@@ -295,9 +327,17 @@ We now compute the training MSE and test MSE for our optimal lasso regression mo
 # training MSE
 lasso.train.pred = predict(lasso.mod1, s=optimal_lam_l1, newx=x.train_r)
 lasso.train.MSE = mean((lasso.train.pred - y.train_r)^2)
+<<<<<<< HEAD
 # test MSE
 lasso.test.pred = predict(lasso.mod1, s=optimal_lam_l1, newx=x.test_r)
 lasso.test.MSE = mean((lasso.test.pred - y.test)^2)
+=======
+lasso.train.MSE
+# test MSE
+lasso.test.pred = predict(lasso.mod1, s=optimal_lam_l1, newx=x.test_r)
+lasso.test.MSE = mean((lasso.test.pred - y.test)^2)
+lasso.test.MSE
+>>>>>>> ba5f7f4bb7951dbee9012fd740a317503212bd65
 ```
 Our final lasso model results in training MSE `r lasso.train.MSE`, and test MSE `r lasso.test.MSE`. The training MSE is higher than the test MSE for our lasso model, meaning that our model preforms better on the test data than the data which it was fit to, which is positive because it signals that our lasso model is not overfit to the training data.
 
@@ -308,6 +348,7 @@ Our final lasso model results in training MSE `r lasso.train.MSE`, and test MSE 
 Now that we have selected two final regression models found via regularization methods, ridge and lasso, we compare the models to choose our optimal linear regression model.
 
 Compute test mean square errors:
+<<<<<<< HEAD
 ```{r optimal_regression_MSE}
 # mse for ridge model on test data
 ridge.test.pred = predict(ridge.mod1, s=optimal_lam_r1, newx=x.test_r)
@@ -329,6 +370,35 @@ Compute test root mean absolute errors:
 MAE.r = mean(abs(y.test-ridge.test.pred))
 # mean absolute error for lasso model on test data
 MAE.l = mean(abs(y.test-lasso.test.pred))
+=======
+```{r MSE}
+# mse for ridge model on test data
+ridge.test.pred = predict(ridge.mod1, s=optimal_lam_r1, newx=x.test_r)
+MSE.r = mean((ridge.test.pred - y.test)^2)
+MSE.r
+# mse for lasso model on test data
+lasso.test.pred = predict(lasso.mod1, s=optimal_lam_l1, newx=x.test_r)
+MSE.l = mean((lasso.test.pred - y.test)^2)
+MSE.l
+```
+Compute test root mean square errors:
+```{r RMSE}
+# root mse for ridge model on test data
+RMSE.r = sqrt(ridge.test.MSE)
+RMSE.r
+# root mse for lasso model on test data
+RMSE.l = sqrt(lasso.test.MSE)
+RMSE.l
+```
+Compute test root mean absolute errors:
+```{r MAE}
+# mean absolute error for ridge model on test data
+MAE.r = mean(abs(y.test-ridge.test.pred))
+MAE.r
+# mean absolute error for lasso model on test data
+MAE.l = mean(abs(y.test-lasso.test.pred))
+MAE.l
+>>>>>>> ba5f7f4bb7951dbee9012fd740a317503212bd65
 ```
 Based on our evaluations of different metrics of accuracy, we see that both our final ridge and lasso regression models preform very closely on the test data. Our ridge model preforms slightly better on the test set measured on all metrics of accuracy. 
 
