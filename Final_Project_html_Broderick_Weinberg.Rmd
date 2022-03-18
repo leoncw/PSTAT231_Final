@@ -152,7 +152,8 @@ library(glmnet)
 library(gbm)
 library(tibble)
 library(forcats)
-library(pcr)
+library(pls)
+library(stringr)
 library(rmdformats) # Using developmental version
 ```
 
@@ -1411,8 +1412,8 @@ pca_regression = pcr(pca_regression_model, data = cbind(y.train,x.train),
 pca_regression_results = (capture.output(summary(pca_regression)))
 ```
 
-The pcr package does not provide for easy extraction of CV errors and other information. The below code chunk provides string cleaning to extract the values needed to analyze the model and select the optimal number of components.
-```{r pca_regression_extract_values, class.source = 'fold-hide'}
+The pcr package does not provide for easy extraction of CV errors and other information. The below code chunk provides string cleaning to extract the values needed to analyze the model and select the optimal number of components. TECHNICAL NOTE: when using the knitr package to knit this Rmd file to an .html file, the interpreter does not seem to interpret this string cleaning code in the same manner as when run locally on the author's machine (the pca_regression_results variable likely does not have the same rows of string values). Therefore, the output of this code chunk is saved to the Model_Output folder and loaded in the next chunk for knitting purposes. It is possible the pca_regression_results object will look different on other machines as well, and the .Rdata file in Model_Output may need to be used.
+```{r pca_regression_extract_values, class.source = 'fold-hide', eval = FALSE}
 # Get the Cross Validation for each Component
 pca_regression_CV1 = pca_regression_results[9]
 pca_regression_CV2 = pca_regression_results[12]
@@ -1434,10 +1435,15 @@ pca_regression_output = data.frame(Component = seq(0,30,by=1),
                                                RMSEP = pca_regression_CV,
                                                VarExplX = pca_regression_VarX,
                                                VarExplY = pca_regression_VarY)
+# Save to Model Output folder
+save(pca_regression_output, file = "Model_Output/pca_regression_output.Rdata")
 ```
 
 Below is code to plot the RMSE for each component, and the percent of total variation explained by each component (as provided by the CV process).
 ```{r pca_regression_plot_CV_VarExpl, class.source = 'fold-hide', warning= FALSE}
+# Load the code from the previous chunk
+load(file = "Model_Output/pca_regression_output.Rdata")
+
 # Plot of Root Mean Squared Test Error Plot
 ggplot(data = pca_regression_output, aes(x = Component, y = RMSEP)) +
   geom_line() +
@@ -1521,7 +1527,7 @@ ggplot(data = pca_predict_graph_data, aes(x = observation, label = Country)) +
 
 Like some of the other models, this model struggles to predict large renewable energy percentages, but performs reasonable well for countries under 50\% renewable energy. While this model will not have the lowest RMSE and will not be the top choice for prediction, the percent variation explained by each component is a useful metric. The fact that it tops out at 25\% for the training data suggests that renewable energy percentage may not be predicted well by the covariates available (after the data cleaning and limiation stage).
 
-```{r pca_remove_objects, class.source = 'fold-hide'}
+```{r pca_remove_objects, class.source = 'fold-hide', warning = FALSE}
 # Remove environmental objects from this section that
 # are unecessary for the remainder of the report
 remove(pca_regression_model, pca_regression, pca_regression_results)
