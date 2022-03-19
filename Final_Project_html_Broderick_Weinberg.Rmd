@@ -21,7 +21,7 @@ bibliography: works_cited.bib
 knitr::opts_chunk$set(echo = TRUE)
 # This is necessary given the nested directories.
 # Enter your working directory here
-knitr::opts_knit$set(root.dir = "/Users/haileybroderick/Desktop/PSTAT231_Final")
+knitr::opts_knit$set(root.dir = "/home/clw/Documents/UCSB/Quarter6/PSTAT 231/Final Project/PSTAT231_Final")
 ```
 
 
