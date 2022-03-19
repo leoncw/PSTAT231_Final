@@ -185,6 +185,7 @@
 <div class="page-content has-page-title">
 <div id="executive-summary" class="section level1">
 <h1>Executive Summary</h1>
+<p>Country-level Global Energy Indicator data is modeled to determine if it can predict country-level renewable energy percent for 2017. The Global Energy Indicators dataset has a large number of available covariates. The data set additionally has a high percentage of missing variables. Therefore extensive data cleaning and interpolation were required to transform the data into a useable form. Exploratory data analysis revealed there was no obvious relationship between country renewable energy percentage and GDP, area, or population. Five models were considered: regularized linear regression, regularized beta regression, principal component regression, random forest, and boosted trees. Models were fit with a training data subset, validated with cross validation, and tested with a test data subset. The mean absolute error of all five models were found to be between 20% and 23% for all of the models. Predictive success was mixed, but performed poorly for countries with high levels of renewable energy as a percent of their total energy generation. An analysis of the results suggest that hydroelectric percentage is not being captured by the available data, and that incorporating some predictor associated with hydroelectric percentage may improve the predictive accuracy.</p>
 </div>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
@@ -1906,7 +1907,7 @@ summary(beta_model)</code></pre>
 ## Sampler summary:
 ## -
 ## DIC = -319.5839 logLik = 179.1992 pd = 38.8144
-## runtime = 47.352
+## runtime = 29.653
 ## ---
 ## Optimizer summary:
 ## -
@@ -1966,7 +1967,7 @@ beta.pred = predict(beta_model, newdata = x.test, type = &quot;parameter&quot;)$
 
 # Calculate Mean Squared Error and Mean Absolute Error
 beta_rmse = sqrt(mean((y.test-beta.pred)^2))
-beta_abs_e = mean(abs(y.test-beta.pred))
+beta_mae = mean(abs(y.test-beta.pred))
 
 # Calculate Bias
 beta.fit = predict(beta_model, newdata = x.train, type = &quot;parameter&quot;)$mu
@@ -1974,7 +1975,7 @@ beta_bias = mean(beta.fit - y.train_beta)
 
 # Output
 paste0(&quot;Beta GLM RMSE: &quot;,round(beta_rmse,4), &quot;; &quot;,
-       &quot;Beta GLM MAE: &quot;,round(beta_abs_e,4), &quot;; &quot;,
+       &quot;Beta GLM MAE: &quot;,round(beta_mae,4), &quot;; &quot;,
        &quot;Beta GLM Bias: &quot;,round(beta_bias,6))</code></pre>
 <pre><code>## [1] &quot;Beta GLM RMSE: 0.2743; Beta GLM MAE: 0.2138; Beta GLM Bias: 0.052371&quot;</code></pre>
 <p>The root mean squared error is .2743 and the mean absolute error is .2138. That means on average, the prediction was off by 21.38%. As mentioned in the methods section, in the case of proportion data 33% mean absolute error is the expected performance of an uninformed prediction. This implies that the sparse beta regression model does provide some utility in prediction. But being off by 21.38% on average is still fairly large. The bias of the predicted values and training values is .05237.</p>
@@ -2434,7 +2435,7 @@ RF_predict_graph_data = RF_predict_graph_data %&gt;%
   mutate(max_value_col = pmax(V1,actual)) %&gt;%
   mutate(Abs_Diff = abs(actual-V1))
 # Plot the Predictions vs. Actual with difference lines and labels
-ggplot(data = RF_predict_graph_data, aes(x = observation, label = Country)) + 
+random_forest_prediction_plot = ggplot(data = RF_predict_graph_data, aes(x = observation, label = Country)) + 
   geom_point(aes(y = V1, color = &#39;Predicted&#39;)) +
   geom_point(aes(y = actual, color=&#39;Actual&#39;)) +
   geom_linerange(aes(ymin = min_value_col, ymax = max_value_col), 
@@ -2446,7 +2447,8 @@ ggplot(data = RF_predict_graph_data, aes(x = observation, label = Country)) +
                      breaks=c(&#39;Actual&#39;, &#39;Predicted&#39;),
                      values=c(&#39;Actual&#39;=&#39;black&#39;, &#39;Predicted&#39;=&#39;red&#39;)) +
   theme(legend.title=element_text(size=20), legend.text=element_text(size=14)) +
-  theme_minimal()</code></pre>
+  theme_minimal()
+random_forest_prediction_plot</code></pre>
 <p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/rf_model_prediction_graph-1.png" width="768" /> Our random forest regression model has difficulty predicting renewable energy percentage for countries which have relatively high renewable energy percentages (above 50%), but is sightly better at predicting countries with low renewable energy percentages close to zero. Our random forest model only predicts values renewable energy percenteges under 50%, this raises concerns about using a random forest model to best predict our data. It may be difficult to predict high renewable energy percentages due to fewer observations of high renewable energy percentage countries in our model data (skewed distribution).</p>
 </div>
 <div id="model-5-boosted-trees" class="section level2">
@@ -2868,17 +2870,73 @@ remove(boost_predict_graph_data,boost_tree_model)</code></pre>
 </div>
 <div id="results" class="section level1">
 <h1>Results</h1>
+<p>The resuls of the 5 predictive models are summarized in the below table:</p>
+<pre class="r fold-hide"><code># Compile Results into Dataframe
+results_df = data.frame(Model = c(&quot;LM-Lasso&quot;,&quot;Beta-Lasso&quot;,&quot;PC Regression&quot;,&quot;Random Forest&quot;,&quot;Boosted Tree&quot;),
+                        RMSE = c(RMSE.l, beta_rmse, pcr_regression_rmse,RF.test.RMSE,boost_tree_rmse),
+                        MAE = c(MAE.l, beta_mae, pcr_regression_mae,RF.MAE,boost_tree_mae))
+
+# Print Table
+kable(results_df)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Model</th>
+<th align="right">RMSE</th>
+<th align="right">MAE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">LM-Lasso</td>
+<td align="right">0.2753095</td>
+<td align="right">0.2216202</td>
+</tr>
+<tr class="even">
+<td align="left">Beta-Lasso</td>
+<td align="right">0.2743163</td>
+<td align="right">0.2137868</td>
+</tr>
+<tr class="odd">
+<td align="left">PC Regression</td>
+<td align="right">0.2755596</td>
+<td align="right">0.2277978</td>
+</tr>
+<tr class="even">
+<td align="left">Random Forest</td>
+<td align="right">0.2584166</td>
+<td align="right">0.2038318</td>
+</tr>
+<tr class="odd">
+<td align="left">Boosted Tree</td>
+<td align="right">0.2767469</td>
+<td align="right">0.2082045</td>
+</tr>
+</tbody>
+</table>
+<p>The random forest prediction has the lowest RMSE and MAE of the five models. The boosted tree prediction has the next lowest MAE, but actually the highest RMSE. The RMSE for the LM-Lasso, Beta-Lasso, and PC Regression models are very similar, but the MAE of the Beta-Lasso Model is slightly lower.</p>
+<p>Well specified tree-based models tend to perform well in prediction, so it is not surprising that the random forest performed best, or that the MAE of the boosted tree model was second best. The difference in rank of RMSE and MAE for the boosted tree model is interesting. One possibility is that the boosted tree model suffered from a few outlier predictions to a more significant degree than the other models (since the squared difference is taken for RMSE but not MAE). Given how low the bias was of the boosted tree fit, it seems possible the model was overfit despite efforts to balance the bias and variance.</p>
+<p>The Beta-lasso model performed better than the LM-Lasso model. This suggests the extra effor to fit a more complicated GLM may be worth it, given the response data are percentages.</p>
+<p>The PC regression prediction performs worst both for MAE and RMSE, although it is only slightly worse on both metrix than the LM-Lasso prediction. The main value in the PC Regression ends up being the measurement of percent of variation explained for thee number of principal components used to fit the model. As mentioned in the PC section, the percent of variation in renewable energy percentage that can be explained by the covariates is only 25%, using all the data. This is relatively low, and possibly explaines why the MAE of all of these models is large in an absolute sense.</p>
+<p>Below is the prediction graph for the Random Forest Model, which was the best at predicting renewable energy percentage in 2017.</p>
+<pre class="r fold-hide"><code># Plot of the best performing prediction
+random_forest_prediction_plot</code></pre>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/final_prediction_graph-1.png" width="768" /></p>
+<p>As mentioned in the previous sections, this model performed poorly at predicting countries with high renewable engery percentage, but performed pretty well at predicting percentages below 50% and above 5%. It is not entirely obvious why this occurs, and is likely not unique to the random forest specification, as the boosted tree predictions experience s imilar phenomena. Nor is it due to a difference in training and test sets for renewable energy: it is shown in the testing and training portion of this report that there were about as much high renewable energy percentage countries in the training data as in the test data. One possibility is simply that none of the covariates provide distinguishing information regarding high percentage renewable countries.</p>
+<p>The researchers have a hypothesis regarding this last point. Bhutan, Georgia, Lesotho, Ecuador, New Zealand, and Sierra Leone all appear to have significant levels hydroelectric power generation contributing to their overall percentage of energy generation, and their renewable percentage<span class="citation">(Wikipedia, n.d.)</span>. None of the variables in the limited, cleaned, data set (the one used for modeling) appear to directly relate to hydroelectric capabilities. Such an improvement to the model is discussed in the conclusion.</p>
+<p>The MAE was between .20 and .23 for all of the models. This suggests that there was not much difference between the models in predictive capability. In an absolute sense, none did particularly well, although they did better than a completely uninformed predictor would be expected to (as discussed above, the MAE would be expected to be about 33% in the case of an uninformed predictor if the response was distributed uniformly).</p>
 </div>
 <div id="conclusion" class="section level1">
 <h1>Conclusion</h1>
 <div id="findings-and-evaluation-of-project-goals" class="section level2">
 <h2>Findings and Evaluation of Project Goals</h2>
+<p>This project was moderately successful in building a model to predict renewable energy percentage for the year 2017. Data cleaning proved a challenge, but a set of 30 predictors were extracted from the Global Environmental Indicators data set and used to fit five models. Given the observations are at the country level, there was a limited amount of data available for analysis. Cross validation was implemented for most of the models since setting aside a seperate validation data set would have limited the test and training data even further. Parametric and non-paremetric models were developed. The non-parametric models performed slightly better, but the parametric models were more interpretable. The overall prediction error was high for the models, but still somewhat useful. Ultimately, environmental indicators can say something about a countries renewable energy percentage, but are not high quality predictors. As mentioned in the results section, all the fitted models performed relatively well in predicting renewable energy percentages below 50%, but much worse for countries with high renewable energy percentages.</p>
 </div>
 <div id="limitations-and-future-work" class="section level2">
 <h2>Limitations and Future Work</h2>
-<p>The Inland Water Resources and Waste data, available from the Global Environmental Indicators data set, were not considered due to time constraints. Both folders have a large number of .csv's and corresponding data. Some countries with poor predictions, such as Lesotho and Bhutan, have high levels of renewable energy percentage and have major hydroelectric resources. Including inland water data predictors may vastly improve the predictions. Ideally all predictors from these files would be considered in the same data cleaning, limiting, and interpolation process. If they have sufficient levels of non missing information, they would be included in the sparsity inducing models used in this report.</p>
+<p>The Inland Water Resources and Waste data, available from the Global Environmental Indicators data set, were not considered due to the time constraints of this project. Both folders of data have a large number of .csv files. Some countries with poor predictions, as mentioned in the results section, have high levels of renewable energy percentage and have major hydroelectric resources. Including inland water data predictors may vastly improve the predictions. Ideally all predictors from these files would be considered in the same data cleaning, limiting, and interpolation process. If they have sufficient levels of non-missing information, they would be included in the sparsity inducing models used in this report.</p>
 <p>The beta regression model relied on the bamlss package to fit the model, and made use of the BIC statistic to optimize the shrinkage parameter. After some searching, the author of this report did not find an R package that implemented cross validation to optimize a shrinkage parameter for a beta regression model. Some sort of extension of the glmnet package for beta regression could be an interesting project. On the other hand, the bamlss package is incredibly powerful and the bayesian approach could provide for some interesting extensions as well. Since the posterior distributions are sampled for the <span class="math inline">\(\beta&#39;s\)</span>, it would be feasible to quantify the uncertainty regarding the predictions - i.e., produce a range of potential values for each prediction. If the range included the true value (for posterior interval level), it would provide more evidence the model is predictive.</p>
-<p>[Boosted Trees Low Bias - could warrant further work. Interesting relationship between NOx and Renewable Energy Percentage in Boosted Tree]</p>
+<p>The boosted tree model was found to have very low bias. This suggested that there was significant overfitting in the final model, even though efforts were made to fit a more general, lower variance model. More time could be spent on optimizing the parameters of this model. An interesting relationship for NOx and renewable energy percentage was observed in the boosted tree model. NOx and GDP were found to be related in the exploratory data analysis. But GDP and renewable energy percentage were not found to be related in the exploratory data analysis. If there is a relationship between NOx and renewable energy percentage, it is likely complex.</p>
 </div>
 </div>
 <div id="works-cited" class="section level1 unnumbered">
@@ -2919,6 +2977,9 @@ remove(boost_predict_graph_data,boost_tree_model)</code></pre>
 </div>
 <div id="ref-Walia2017">
 <p>Walia, Anish Singh. 2017. “Gradient Boosting in R.” datascienceplus.com; Online.</p>
+</div>
+<div id="ref-Hydroelectric">
+<p>Wikipedia. n.d. “List of Countries by Renewable Electricity Production.”</p>
 </div>
 </div>
 </div>
