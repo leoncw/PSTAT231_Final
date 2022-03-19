@@ -127,7 +127,6 @@
             <li><a href="#data-global-environmental-indicators">Data: Global Environmental Indicators</a></li>
             <li><a href="#purpose">Purpose</a></li>
             <li><a href="#methods">Methods</a></li>
-            <li><a href="#measuring-error-and-bias">Measuring Error and Bias</a></li>
             </ul></li>
             <li><a href="#coding-requirments">Coding Requirments</a><ul>
             <li><a href="#libraries">Libraries</a></li>
@@ -135,10 +134,10 @@
             </ul></li>
             <li><a href="#data-cleaning">Data Cleaning</a><ul>
             <li><a href="#manual-crosswalks">Manual Crosswalks</a></li>
-            <li><a href="#loading-and-combing-csvs-from-subfolders">Loading and Combing CSVs from Subfolders</a></li>
+            <li><a href="#loading-and-combing-data-sets">Loading and Combing Data Sets</a></li>
             <li><a href="#limiting-the-data">Limiting the Data</a></li>
-            </ul></li>
             <li><a href="#interpolating-missing-data">Interpolating Missing Data</a></li>
+            </ul></li>
             <li><a href="#analysis-and-prediction">Analysis and Prediction</a><ul>
             <li><a href="#exploratory-data-analysis">Exploratory Data Analysis</a></li>
             <li><a href="#training-and-test-data">Training and Test Data</a></li>
@@ -189,8 +188,8 @@
 </div>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
-<p>This report has been completed by Hailey Broderick and Callum Weinberg for PSTAT 131/231 in the Winter quarter of 2022 at the University of Santa Barbara. For course credit, the report has been submitted to Gauchospace, along with the structured folder which contains the raw data, additional markdown files (the necessary code is available below unless otherwise stated, but these may show some extra work), a codebook/data dictionary, data crosswalks, intermediate data files, a works cited document (called &quot;works_cited.bib&quot;), and the RMd file that creates this HTML file. If accessing this project via online interface, the materials can be found here: <a href="https://github.com/leoncw/PSTAT231_Final" class="uri">https://github.com/leoncw/PSTAT231_Final</a>. The web hosted version of this HTML document can be found here: <a href="https://leoncw.github.io/PSTAT231_Final/Final_Project_html_Broderick_Weinberg.html" class="uri">https://leoncw.github.io/PSTAT231_Final/Final_Project_html_Broderick_Weinberg.html</a>.</p>
-<p>The primary purpose of this project and the course final assignment was to take a dataset and fit models to predict values of a variable. Specifically, the prediction is performed on a known variable (i.e. this is a supervised learning project) and a test data set is used to evaluate the performance of the models. Performing inferential statistics on the models was not the primary purpose of this project, but is discussed at times in the report.</p>
+<p>This report has been completed by Hailey Broderick and Callum Weinberg for PSTAT 131/231 in the Winter quarter of 2022 at the University of Santa Barbara. For course credit, the report has been submitted to Gauchospace, along with the structured folder which contains the raw data, additional markdown files (the necessary code is available below unless otherwise stated, but these may show some extra work), a codebook/data dictionary, data crosswalks, intermediate data files, a works cited document (called &quot;works_cited.bib&quot;), and the Rmd file that creates this HTML file. If accessing this project via online interface, the materials can be found here: <a href="https://github.com/leoncw/PSTAT231_Final" class="uri">https://github.com/leoncw/PSTAT231_Final</a>. The web hosted version of this HTML document can be found here: <a href="https://leoncw.github.io/PSTAT231_Final/Final_Project_html_Broderick_Weinberg.html" class="uri">https://leoncw.github.io/PSTAT231_Final/Final_Project_html_Broderick_Weinberg.html</a>.</p>
+<p>The primary purpose of this project and the course final assignment was to take a data set and fit models to predict values of a variable. Specifically, the prediction is performed on a known variable (i.e. this is a supervised learning project) and a test data set is used to evaluate the performance of the models. Performing inferential statistics using the models was not the primary purpose of this project, but is discussed at times in the report.</p>
 <p>The structure of the report is as follows:</p>
 <ul>
 <li>Executive Summary</li>
@@ -200,7 +199,6 @@
 <li>Data: Global Environmental Indicators</li>
 <li>Purpose</li>
 <li>Methods</li>
-<li>Measuring Error and Bias</li>
 </ul></li>
 <li>Coding Requirements
 <ul>
@@ -210,9 +208,9 @@
 <li>Data Cleaning
 <ul>
 <li>Manual Crosswalks</li>
-<li>Loading and Combining Datasets</li>
+<li>Loading and Combining Data Sets</li>
 <li>Data Limitation</li>
-<li>Data Interpolation</li>
+<li>Interpolating Missing Data</li>
 </ul></li>
 <li>Analysis and Prediction
 <ul>
@@ -234,36 +232,35 @@
 </ul>
 <div id="background" class="section level2">
 <h2>Background</h2>
-<p>The makeup of energy generation is an important subject in the 21st century. As of 2020, fossil fuels are the largest categorical contributor to greenshouse gas emmisions.<span class="citation">(Alers 2020)</span> This in turn is a major contributor to climate change. Many countries and international organizations, such as the United Nations, are aiming to make energy generation &quot;green&quot;, &quot;renewable&quot;, or &quot;clean&quot; in order to achieve carbon neutrality.<span class="citation">(Alers 2020)</span> And there has been an increase in renewable energy generation in the last decade. From 2010 to 2018, 411 million people across the globe started using clean electricity.<span class="citation">(Alers 2020)</span></p>
-<p>Definitions of renewable enegry varies, though it almost always excluded fossil fuels. The United Nations Statistics Division defines renewable energy production as the following:</p>
+<p>The makeup of energy generation is an important subject in the 21st century. As of 2020, fossil fuels are the largest categorical contributor to greenshouse gas emmisions <span class="citation">(Alers 2020)</span>. This in turn is a major contributor to climate change. Many countries and international organizations, such as the United Nations, are aiming to make energy generation &quot;green&quot;, &quot;renewable&quot;, or &quot;clean&quot; in order to achieve carbon neutrality <span class="citation">(Alers 2020)</span>. There has been an increase in renewable energy generation in the last decade. From 2010 to 2018, 411 million people across the globe started using cleanly generated electricity <span class="citation">(Alers 2020)</span>.</p>
+<p>Definitions of renewable enegry vary, though it almost always excluded fossil fuels. The United Nations Statistics Division defines renewable energy production as the following:</p>
 <p>&quot;Renewable electricity production refers to the proportion of total electricity produced that comes from a renewable origin. Electricity production refers to gross electricity production, which is the sum of the electrical energy production by all the generating units/installations concerned (including pumped storage) measured at the output terminals of the main generators. This includes the consumption by station auxiliaries and any losses in the transformers that are considered integral parts of the station. Renewable electricity production was calculated as the sum of electricity produced from hydro, geothermal, solar, wind, tide, wave and ocean sources. All electricity production from combustible fuels is considered non-renewable; therefore electricity produced from burning biomass or renewable waste is not included as renewable electricity in this table. However, this has been observed to be a relatively negligible proportion of electricity production in most cases.&quot;<span class="citation">(UNSD 2020)</span></p>
 <p>The above source applies to the data in this project, and therefore the scope of renewable energy in this project as is described above.</p>
 <p>Given the importance of transitioning electricity generation to renewable, it is important to better understand what factors relate to the percentage of a countries energy generation that is composed of renewable energy.</p>
 </div>
 <div id="data-global-environmental-indicators" class="section level2">
 <h2>Data: Global Environmental Indicators</h2>
-<p>The data for this report comes from the Global Environmental Dataset, currently accessible online here as a kaggle hosted data set (kaggle is an online platform for data set hosting and statistical learning competitions): <a href="https://www.kaggle.com/ruchi798/global-environmental-indicators" class="uri">https://www.kaggle.com/ruchi798/global-environmental-indicators</a>. <span class="citation">(Bhatia 2021)</span>. The kaggle data set is comprised of 128 files in 10 sub folders, representing different categories of the data. Each subfolder corresponds to a general area of data. Within each folder are varying numbers of .csv files with environmental indicator data for countries. For each .csv file, there is a .xslx file which generally has some description of the data in the corresponding .csv file. The indicator categories include: Air and Climate, Biodiversity, Energy and Minerals, Forests, Governance, Inland Water Resources, Land and Agriculture, Marine and Coastal Areas, Natural Disasters, and Waste. Due to time limitations for this project, the data in the Inland Water Resources category and Waste category were not considered for this project.</p>
-<p>The .csv files are generally structured as follows: the country name and country ID are rows in the data, and various indicators and other information are in the columns. In some files the units are listed in the column titles, in others the .xlsx files contain the variable information. Some columns contain indicator information, while others are descriptive of the indicators (i.e. the year the indicator occured in, or notes on certain variables).</p>
-<p>Missing data is a common occurance in the Global Environmental Indicators data set. Not all countries are listed in each file. In some files more than half of the countries are not listed. Even when they are listed, not all indicators are populated for a given county. Additionally, the country name and country ID are not consistant across files in the whole data set, or even the subfolders in a few cases. These issues are addressed below in the Data Cleaning section of the report.</p>
+<p>The data for this report comes from the Global Environmental Dataset, currently accessible online here as a kaggle hosted data set (kaggle is an online platform for data set hosting and statistical learning competitions): <a href="https://www.kaggle.com/ruchi798/global-environmental-indicators" class="uri">https://www.kaggle.com/ruchi798/global-environmental-indicators</a>. <span class="citation">(Bhatia 2021)</span>. The kaggle data set is comprised of 128 files in 10 subfolders, with each subfolder representing different categories. Within each folder are varying numbers of csv files with environmental indicator data for countries. For each csv file, there is a xslx file which generally has some description of the data in the corresponding csv file. The indicator categories include: Air and Climate, Biodiversity, Energy and Minerals, Forests, Governance, Inland Water Resources, Land and Agriculture, Marine and Coastal Areas, Natural Disasters, and Waste. Due to time limitations for this project, the data in the Inland Water Resources category and Waste category were not considered.</p>
+<p>The csv files are generally structured as follows: the country name and country ID are rows in the data, and various indicators and other information are the columns. In some files the units are listed in the column titles, in others the xlsx files contain the variable information. Some columns contain indicator information, while others are descriptive of the indicators (e.g. the year the indicator occured, or notes on certain variables).</p>
+<p>Missing data is a common occurance in the Global Environmental Indicators data set. Not all countries are listed in each file. In some files more than half of the countries are not listed. Even when they are listed, not all indicators are populated for a given county. Additionally, the country name and country ID are not consistent across files in the entire data set, or even the subfolders in a few cases. These issues are addressed below in the Data Cleaning section of the report.</p>
 <p>The &quot;Renewable elec production percentage&quot; csv file (in the Energy and Minerals subfolder) contains the renewable energy percentage (of total energy production) by country. This is the predicted indicator for all models in this report.</p>
-<p>While this report primarily focuses on using the Global Environmental Indicators data set, country population, size, and GDP data was also included. This data was added in order to control for potential confounding variables in model fitting. These three variables come from the World Bank &quot;DataBank&quot; (available at <a href="https://data.worldbank.org/indicator/" class="uri">https://data.worldbank.org/indicator/</a>).<span class="citation">(DataBank, n.d.)</span> The three indicator files of interest are AG.LND.TOTL.K2_DS2_en (Country land size in <span class="math inline">\(km^2\)</span>), NY.GDP.MKTP.CD_DS2 (Country GDP US equivalent, as of 2022-02-15), andSP.POP.TOTL_DS2 (Country Population). 2017 indicators were used in the models in all three cases. When values were missing for these variables in the world bank data, Wikipedia was used to get rough approximations. This was only necessary in a few cases and generally applied to smaller island nations and French/British overseas dependencies.</p>
+<p>While this report primarily focuses on using the Global Environmental Indicators data set, country population, size, and GDP data were also included. This data was added in order to control for potential confounding variables in model fitting. These three variables come from the World Bank &quot;DataBank&quot; (available at <a href="https://data.worldbank.org/indicator/" class="uri">https://data.worldbank.org/indicator/</a>) <span class="citation">(DataBank, n.d.)</span>. The three indicator files of interest are AG.LND.TOTL.K2_DS2_en (Country land size in <span class="math inline">\(km^2\)</span>), NY.GDP.MKTP.CD_DS2 (Country GDP US equivalent, as of 2022-02-15), and SP.POP.TOTL_DS2 (Country Population). 2017 indicators were used in the models in all three cases. When values were missing for these variables in the world bank data, Wikipedia was used to get rough approximations. This was only necessary in a few cases and generally applied to smaller island nations and French/British overseas dependencies.</p>
 <p>Along with their online, original-source, availability, all the above listed data is available at <a href="https://github.com/leoncw/PSTAT231_Final" class="uri">https://github.com/leoncw/PSTAT231_Final</a> in the &quot;Raw_Data&quot; folder. The World Bank variables were manually copied into the &quot;02_final_crosswalk.csv&quot; file</p>
 </div>
 <div id="purpose" class="section level2">
 <h2>Purpose</h2>
-<p>The primary purpose of this report is to predict renewable energy percentages for countries in 2017 using Global energy indicators provided in the Global Environmental Indicators data set. This report primarily focuses on predictive statistics (although there may be some comments related to inferential statistics). The motivation is that certain environmental indicators may be able to predict the renewable energy percentage a country exhibits. The predictions are quantitatively assessed, and the performance of the models are compared.</p>
+<p>The primary purpose of this report is to predict renewable energy percentages for countries in 2017 using environmental indicators provided in the Global Environmental Indicators data set. This report primarily focuses on predictive statistics (although there may be some comments related to inferential statistics). The motivation is that certain environmental indicators may be able to predict the renewable energy percentage a country exhibits. The predictions are quantitatively assessed, and the performances of the models are compared.</p>
 </div>
 <div id="methods" class="section level2">
 <h2>Methods</h2>
-<p>Since there are only approximately 200 countries, this project deals with the statistical problem of <span class="math inline">\(p\)</span> not being significantly larger than <span class="math inline">\(n\)</span> (p being predictors, and n being number of observations). Therefore this project focuses on fitting sparsity-inducing predictive models. Sparsity inducing models generally &quot;shrink&quot; parameters to either small values (e.g. ridge regression) or 0 (e.g. lasso regression) so that effectively, <span class="math inline">\(p\)</span> is decreased. Such models often allow some bias in order to decrease the variance that would otherwise be inherent to a model with relatively large <span class="math inline">\(p\)</span>. Parametric and non-parametric models are included.</p>
-<p>All of the selected models are supervised learning models. The models are trained on a subset of the data (called the &quot;training set&quot;) and are validated with cross-validation (see Training and Test Data section for further discussion), with one exception (see Model 2). The predictive power of the models is measured using a test training set. The model error is the primary metric for measuring the success of prediction. Error is generally measured using a loss function. Renewable energy percentage is a continuous, numeric, variable bounded by 0 and 1. Therefore the two loss functions used are based on absolute loss and quadratic loss.</p>
-</div>
-<div id="measuring-error-and-bias" class="section level2">
-<h2>Measuring Error and Bias</h2>
+<p>Since there are only approximately 200 countries, this project encounters the statistical problem of <span class="math inline">\(p\)</span> not being significantly larger than <span class="math inline">\(n\)</span> (p being predictors, and n being number of observations). Therefore this project focuses on fitting sparsity-inducing predictive models. Sparsity inducing models generally &quot;shrink&quot; parameters to either small values (e.g. ridge regression) or 0 (e.g. lasso regression) so that effectively, <span class="math inline">\(p\)</span> is decreased. Such models often allow some bias in order to decrease the variance that would otherwise be inherent to a model with relatively large <span class="math inline">\(p\)</span>. Parametric and non-parametric models are included.</p>
+<p>All of the selected models are supervised learning models. The models are trained on a subset of the data (called the &quot;training set&quot;) and are validated using cross-validation (see Training and Test Data section for further discussion), with one exception (see Model 2). The predictive power of the models is measured using a test training set. The model error is the primary metric for measuring the success of prediction. Error is generally measured using a loss function. Renewable energy percentage is a continuous, numeric, variable bounded by 0 and 1. Therefore the two loss functions used are based on absolute loss and quadratic loss.</p>
+<div id="measuring-error-and-bias" class="section level4">
+<h4>Measuring Error and Bias</h4>
 <p>The following applies for observed renewable energy percentage <span class="math inline">\(y_i\)</span> (for country <span class="math inline">\(i\)</span>) and predicted renewable energy percentage <span class="math inline">\(\hat{y_i}\)</span>.</p>
 <p>Root Mean Square Error (RMSE), which is a form of quadratic loss, is defined as: <span class="math display">\[RMSE = \sqrt{\frac{\sum_{i = 1}^{n}(\hat{y_i}-y_i)^2}{n}}\]</span></p>
 <p>RMSE is the most commonly used metric in comparing the relative accuracy of predictive models. Mean Absolute Error (MAE), which is a form of absolute loss, is defined as: <span class="math display">\[MAE = \frac{\sum_{i = 1}^{n}|\hat{y_i}-y_i|}{n}\]</span> RMSE and MAE are typically measured on the test data (or validation data), i.e. <span class="math inline">\(y_i \in \{y_{test}\}\)</span>.</p>
-<p>MAE is particularly useful in evaluating the predictions made in this report. Since percentages are bounded by 0 and 1, the MAE is the average percentage miss in either direction for the set of predictions. So if the <span class="math inline">\(MAE = .10\)</span> for a model and a specific test data set, then the predictions on average were .1% away from the true percentages.</p>
+<p>MAE is particularly useful in evaluating the predictions made in this report. Since percentages are bounded by 0 and 1, the MAE is the average percentage miss in either direction for the set of predictions. So if the <span class="math inline">\(MAE = .10\)</span> for a model and a specific test data set, then the predictions on average were 10% away from the true percentages.</p>
 <p>Additionally, MAE implies a threshold for useful models for a response bounded by 0 and 1. If no distributional information is assumed about the response (i.e. set an uninformed prior distribution for the response, which would be the uniform distribution) then the MAE of a completely naive predictor would be roughly .33. In other words, (conditional on nothing being known about renewable energy percentage) if we randomly generated values between 0 and 1 from a uniform distribution, we would expect the MAE for a large sample size to be about .33. An empirical example of this is shown in the code above.</p>
 <pre class="r"><code># Define two samples from Uniform distribution
 set.seed(42)
@@ -277,6 +274,7 @@ mean(abs(sample_1-sample_2))</code></pre>
 <p>This sets a limit on what a useful model can be. If a model has an MAE of .4 for example, then we could do better by just guessing. Alternatively, any model with MAE substantially below .33 implies the model is more useful than random guessing.</p>
 <p>Finally, the Bias of the model is considered. Bias is defined as:</p>
 <p><span class="math display">\[Bias = \frac{\sum_{i = 1}^{n}\hat{y_i}-y_i}{n}\]</span> Unlike MAE and RMSE, bias is measured using the training data, i.e. <span class="math inline">\(y_i \in \{y_{train}\}\)</span>. Effectively, it measures how close the predicted values are on average to the values used to fit them. By effectively having a large number of predictors (e.g. <span class="math inline">\(n\)</span> fitting polynomial terms in a Generalized Additive Model), it is often possible to get the bias close to 0. This generally indicates the model is overfitted, and will perform poorly on test data. Low bias usually comes at the cost of high variance in the prediction. Bias is measured in this report to provide warning of overfitting. It may not be directly comparable between models, as some models tend to have lower bias but still may perform better.</p>
+</div>
 </div>
 </div>
 <div id="coding-requirments" class="section level1">
@@ -308,7 +306,7 @@ library(rmdformats) # Using developmental version</code></pre>
 </div>
 <div id="functions" class="section level2">
 <h2>Functions</h2>
-<p>Below are a series of functions (not from libraries) used in different places throughout the report. They are written by the authors unless otherwise specified.</p>
+<p>Below are a series of functions (not from libraries) used in different places throughout the report. They are written by the authors unless otherwise specified in the coding comments.</p>
 <p>The below function checks for missing values in a data frame or matrix.</p>
 <pre class="r fold-hide"><code># From https://cran.r-project.org/web/packages/assertr/vignettes/assertr.html
 not.missing.p = function(x){
@@ -349,8 +347,8 @@ qqplot_residuals &lt;- function (vec) # argument: vector of numbers
 <h1>Data Cleaning</h1>
 <div id="manual-crosswalks" class="section level2">
 <h2>Manual Crosswalks</h2>
-<p>As mentioned above, within each folder from the Kaggle dataset, the differnt CSV files sometimes had the countries indexed to different values. In other words, there was not a unique identifier between the different CSV files for the Energy and Mineral folder and the Land and Agrigulture folder. In order to combine (merge) these datasets, manual &quot;crosswalks&quot; had to be compiled, with a new identifier variable generated. These crosswalk files are available in the &quot;Crosswalks&quot; folder in the both the submission (note this applies to the submission for PSTAT 231) and the hosted github page (see introduction).</p>
-<p>Additionally, there is a &quot;final crosswalk&quot; which maps the different subfolders (after the CSV from each sub folder has been combined) together is loaded.</p>
+<p>As mentioned above, within each folder from the Kaggle dataset, the differnt csv files sometimes had the countries indexed to different values. In other words, there was not a unique identifier between the different csv files for the Energy and Mineral folder and the Land and Agrigulture folder. In order to combine (merge) these datasets, manual &quot;crosswalks&quot; had to be compiled, with a new identifier variable generated. These crosswalk files are available in the &quot;Crosswalks&quot; folder in the both the submission (note this applies to the submission for PSTAT 231) and the hosted github page (see introduction).</p>
+<p>Additionally, there is a &quot;final crosswalk&quot; which maps the different subfolders (after the csv from each sub folder has been combined) together is loaded.</p>
 <pre class="r fold-hide"><code>## Energy and Minerals Crosswalk
 energy_minerals_crosswalk_manual = read.csv(&quot;Crosswalks/Energy_Minerals_Crosswalk.csv&quot;)
 energy_minerals_crosswalk_mineral_manual = read.csv(&quot;Crosswalks/Energy_Minerals_Crosswalk_mineral_dataset.csv&quot;)
@@ -368,10 +366,10 @@ final_crosswalk = final_crosswalk %&gt;%
 final_crosswalk_Country_Only = final_crosswalk %&gt;%
   select(Country, Country_ID_Final)</code></pre>
 </div>
-<div id="loading-and-combing-csvs-from-subfolders" class="section level2">
-<h2>Loading and Combing CSVs from Subfolders</h2>
-<p>The CSVs from each subfolder are loaded and cleaned. Cleaning in this case refers to keeping variables of interest, renaming variables, dropping empty rows, and checking that Country and Country ID are unique. For the folders that do have a unique country identifier for all CSVs in the folder, a crosswalk is generated in R and the CSVs are merged using that. Versions of the merged data are saved to the &quot;intermediate&quot; folder - this was done mainly to create the &quot;final crosswalk&quot; and is not strictly necessary if this code is being rerun.</p>
-<p>The world bank data variables are included in the final crosswalk: they were manually entered into the CSV.</p>
+<div id="loading-and-combing-data-sets" class="section level2">
+<h2>Loading and Combing Data Sets</h2>
+<p>The csvs from each subfolder are loaded and cleaned. Cleaning in this case refers to keeping variables of interest, renaming variables, dropping empty rows, and checking that Country and Country ID are unique. For the folders that do have a unique country identifier for all CSVs in the folder, a crosswalk is generated in R and the CSVs are merged using that. Versions of the merged data are saved to the &quot;intermediate&quot; folder - this was done mainly to create the &quot;final crosswalk&quot; and is not strictly necessary if this code is being rerun.</p>
+<p>The world bank data variables are included in the final crosswalk: they were manually entered into the csv file.</p>
 <p>Air and Climate Code:</p>
 <pre class="r fold-hide"><code>## CH_4 Emissions
 CH4_emissions = read.csv(&quot;Raw_Data/Air and Climate/CH4_Emissions.csv&quot;)
@@ -1042,8 +1040,7 @@ remove(combined_air_climate_clean,combined_energy_minerals_clean,combined_land_a
 </div>
 <div id="limiting-the-data" class="section level2">
 <h2>Limiting the Data</h2>
-<p>The following code limits the observations and variables based on a number of practical criteria. First, any missing values are replaced with NAs. Non-numeric data is converted to numeric (except for country names). Variables that were originally included from the CSVs as &quot;Notes&quot; are excluded. Additionally, the renewable percentage for 2017 is converted to a percentage (the data is a percentage from the source, not a decimal).</p>
-<p>[NOTE NUMBER OF ROWS AND COLUMNS DROPPED]</p>
+<p>The following code limits the observations and variables based on a number of practical criteria. First, any missing values are replaced with NAs. Non-numeric data is converted to numeric (except for country names). Variables that were originally included from the csvs as &quot;Notes&quot; are excluded. Additionally, the renewable percentage for 2017 is converted to a decimal (the data is a percentage from the source, not a decimal).</p>
 <pre class="r fold-hide"><code>## Load the Data from the 01 File
 load(file=&quot;Intermediate_Data/01_full_data.Rdata&quot;)
 
@@ -1070,20 +1067,20 @@ full_data_clean[ , i] = apply(full_data_clean[ , i], 2, function(x) as.numeric(x
 # Convert Renewable Percentage 2017 to an Actual Percentage
 full_data_clean$renewable_percent_2017 = 
   full_data_clean$renewable_percent_2017/100</code></pre>
-<p>Any observations (countries) that don't have percent renewable for 2017 are excluded, since that is what predicted, and there is no reasonable way to interpolate the &quot;solution.&quot; 19 countries do not have 2017 renewable percentage.</p>
+<p>Any observations (countries) that don't have percent renewable for 2017 are excluded, since that is what is being predicted. 19 countries do not have 2017 renewable percentage.</p>
 <pre class="r"><code>## Drop Observations that don&#39;t have Renewable Energy Percentage for 2019
 # There are 19 Such observations
 full_data_clean = full_data_clean %&gt;%
   filter(is.na(renewable_percent_2017) == FALSE)</code></pre>
-<p>Some of the variables and countries are missing a lot of values: more than is reasonable to interpolate. The selected threshold is if the country is missing more than 50 values. This was chosen after reviewing the dataset, and weighs the importance of retaining data (and not biasing the model too much by removing countries) with the practical consideration that fitting a model for an observation that is over mostly interpolated for its predictors is not particularly useful or interesting and makes modeling more difficult.</p>
+<p>Some of the variables and countries are missing a lot of values: more than is reasonable to interpolate. The selected threshold is if the country is missing more than 50 values. This was chosen after reviewing the data set, and weighs the importance of retaining data (and not biasing the model too much by removing countries) with the practical consideration that fitting a model for an observation that is over mostly interpolated for its predictors is not particularly useful or interesting and makes modeling more difficult.</p>
 <pre class="r"><code>## Get a count of the number of missings, and remove Countries 
 # that have 50 or more missing values. See write up for list of
 # countries
 full_data_row_remove = full_data_clean %&gt;%
   mutate(row_missings = rowSums(is.na(full_data_clean))) %&gt;%
   filter(row_missings &lt; 50)</code></pre>
-<p>After removing the observations (countries) without much data, a similar process is applied to columns (predictors). Similar logic applies as above. Variables that are mostly missing will be mostly imputed, reducing the value of the process.</p>
-<p>Per capita variables are not included when the raw total is available (since models will be able to include population). Year variables are not included in modeling, but are available for data tracking in &quot;01_full_data.Rdata&quot;. Variables are removed &quot;manually&quot; in this step by inspecting the list of variables and number of missings</p>
+<p>After removing the countries without much data, a similar process is applied to columns (predictors). Similar logic applies as above. Variables that are mostly missing will be mostly imputed, reducing theor value in prediction.</p>
+<p>Per capita variables are not included when the raw total is available (since models will be able to include population). Year variables are not included in modeling, but are available for data tracking in &quot;01_full_data.Rdata&quot;. Variables are removed &quot;manually&quot; in this step by inspecting the list of variables and the number of missings.</p>
 <pre class="r"><code># Below is a list of the number of missing values per column. 
 # Using this list to determine what variables to keep for the final models
 # Uncomment the below code for a table of the columns 
@@ -1113,12 +1110,9 @@ save(limited_data, file=&quot;Intermediate_Data/02_limited_data.Rdata&quot;)
 remove(full_data_clean,full_data_row_remove,i,j)</code></pre>
 <p>Note that after starting the modeling process, it was discovered that energy_supply_2017 and energy_supply_petajoules contained identical data from two different sources. energy_supply_2017 was not included in the models, but appears in the data cleaning process above.</p>
 </div>
-</div>
-<div id="interpolating-missing-data" class="section level1">
-<h1>Interpolating Missing Data</h1>
-<p>[Discussion of this section. Reference textbook section that talks about interpolation]</p>
-<p>The goal is to predict each missing value using a linear model of all other observations, where any missings in the fit for the model are substituted with the median (but only for the fitting and prediction stage).</p>
-<p>Additionally, contribution_renewable_to_electric_production was removed at this step. It was discovered while modeling the variable was basically the same as rewable_percentage_2017, and likely is a slightly different version of the same information.</p>
+<div id="interpolating-missing-data" class="section level2">
+<h2>Interpolating Missing Data</h2>
+<p>The goal is to predict each missing value using a linear model of all other observations, where any missings in the interpolation process are substituted with the median. Additionally, contribution_renewable_to_electric_production was removed at this step. It was discovered while modeling the variable was basically the same as rewable_percentage_2017, and likely is a slightly different version of the same information.</p>
 <pre class="r"><code>## Load the Data from the 02 File
 load(file=&quot;Intermediate_Data/02_limited_data.Rdata&quot;)
 
@@ -1183,14 +1177,14 @@ ggplot(distr_df, aes(x = y_i, fill = variable)) +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5, size = 12))</code></pre>
 <p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/interpolation_example-1.png" width="768" /></p>
-<p>This graph illustrates what occurs after interpolating the missing values in the Ramsar Convention variable. For the missing values, there year is being predicted. The interpolated values are mostly towards the center of the distribution, with some weight towards the higher end (later year) of the distribution. If a country has not signed the convention, it arguably makes sense they would be interpolated to sign later (since signing later implies less enthusiasm for the convention, as does signing later).</p>
+<p>This graph illustrates what occurs after interpolating the missing values in the Ramsar Convention variable. For the missing values, there year is being predicted. The interpolated values are mostly towards the center of the distribution, with some weight towards the higher end (later year) of the distribution. If a country has not signed the convention, it arguably makes sense they would be interpolated to sign later (since signing later implies less enthusiasm for the convention, as does signing later). Histograms for the other variables produced similar results: the interpolated values were mostly distributed around the median of the distribution.</p>
+</div>
 </div>
 <div id="analysis-and-prediction" class="section level1">
 <h1>Analysis and Prediction</h1>
 <div id="exploratory-data-analysis" class="section level2">
 <h2>Exploratory Data Analysis</h2>
-<p>We preform exploratory data analysis in order to gain insight on the statistical properties of our data. This will allow us to better understand and visualize the relationships between our response and certain predictors which may be of higher importance for our data, as well as the relationships between predictors themselves. We preform EDA on our training set which consist of 156 observations and 34 variables.</p>
-<p>We begin our analysis by loading the data into R and using glimpse() to look at the variables in our dataset.</p>
+<p>We preform exploratory data analysis in order to gain insight on the statistical properties of our data. This will allow us to better understand and visualize the relationships between our response and certain predictors which may be of higher importance for our data, as well as the relationships between predictors themselves. We begin our analysis by using glimpse() to look at the variables in our dataset.</p>
 <pre class="r"><code>glimpse(model_data)</code></pre>
 <pre><code>## Rows: 195
 ## Columns: 34
@@ -1228,7 +1222,7 @@ ggplot(distr_df, aes(x = y_i, fill = variable)) +
 ## $ UN_Convention_to_Combat_Desertification   &lt;dbl&gt; 1995, 2000, 1996, 1997, 1997…
 ## $ UN_Framework_Convention_on_Climate_Change &lt;dbl&gt; 2002, 1994, 1993, 2000, 1993…
 ## $ World__Heritage_Convention                &lt;dbl&gt; 1979, 1989, 1974, 1991, 1983…</code></pre>
-<p>Our cleaned data contains 195 observations of 34 variables. Since our goal is to predict renewable energy percentage in 2017 for a given country, our response variable is renewable_percent_2017, and the remaining 31 variables are the predictors which we will use to build our models (excluding Country name and ID).</p>
+<p>Our cleaned data contains 195 observations of 34 variables. Since our goal is to predict renewable energy percentage in 2017 for a given country, our response variable is renewable_percent_2017, and the remaining 30 variables are the predictors which we will use to build our models (excluding Country name and ID, and excluding energy_supply_2017).</p>
 <p>Looking at the variables in our dataset, we see that Country_Final is a categorical variable, which indicates the country corresponding to the observation. Country_Final_ID is a numeric variable, although it is another form of Country identification, so its value represents a categorical variable as well. These variables won't directly influence renewable electricity production percentage, but will instead be an indicator for observations. In addition, we note that energy_supply_petajoules and energy_supply_2017 represent the same variables, thus we will choose to exclude energy_supply_2017 for the remainder of the project. We subset the data, removing these variables, before proceeding to analysis.</p>
 <pre class="r"><code>subset_data = model_data %&gt;%
   select(-c(Country_Final, Country_ID_Final, energy_supply_2017))</code></pre>
@@ -1263,7 +1257,7 @@ ggplot(data=transform1, mapping = aes(x=renewable_percent_2017, y=X2017_Land_Are
 ggplot(data=transform1, mapping = aes(x=renewable_percent_2017, y=X2017_GDP_US_Dollars_World_Bank)) +
   geom_point(color=&quot;goldenrod2&quot;) +
   geom_smooth(color=&quot;firebrick1&quot;)</code></pre>
-<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/EDA_2-3.png" width="768" /> Based on our scatter plots of the three variables vs renewable energy percentage, we conclude that there is no significant correlation between renewable energy production percentage and a country's relative Population, GDP, or Land Area. Thus, we reject the notion that renewable energy percentage can be predicted based solely on these predictors. It is interesting to note that in each plot, there seems to be a slight positive correlation between renewable energy percentage and the three predictors of interest for countries with low renewable energy percentage (0% to 25%).</p>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/EDA_2-3.png" width="768" /> Based on our scatter plots of the three variables versus renewable energy percentage, we conclude that there is no significant correlation between renewable energy production percentage and a country's relative Population, GDP, or Land Area. Thus, we reject the notion that renewable energy percentage can be predicted based solely on these predictors. It is interesting to note that in each plot, there seems to be a slight positive correlation between renewable energy percentage and the three predictors of interest for countries with low renewable energy percentage (0% to 25%).</p>
 </div>
 <div id="emissions-variables-relationships-ch4-co2-ghg-nox" class="section level4">
 <h4>Emissions Variables Relationships (CH4, CO2, GHG, NOx)</h4>
@@ -1310,7 +1304,7 @@ ggplot(data=transform2, mapping = aes(x=X2017_GDP_US_Dollars_World_Bank, y=NOx))
 </div>
 <div id="paris-climate-agreement" class="section level4">
 <h4>Paris Climate Agreement</h4>
-<p>Finally we wish to acknowledge variables which represent the year that a Country officially formalized their participation in a selection of environmental international treaties and conventions. These predictor variables may be of importance because they indicate the Country's desire to pursue measures to mitigate climate change. We hypothesize that an earlier year of formalizing participation in such conventions and treaties would result in a decrease in harmful environmental activities. We assume that countries who formalize their participation observe the importance of transitioning off of fossil fuels decreasing harmful emissions, and begin their transition sooner than other countries. We check if there exists a relationship between one of the most well-known Climate agreements, The Paris Climate Accord (Paris_Agreement), and a harmful environmental activity mining (mining_value_2017):</p>
+<p>Finally we consider variables which represent the year that a Country officially formalized their participation in a selection of environmental international treaties and conventions. These predictor variables may be of importance because they indicate the Country's desire to pursue measures to mitigate climate change. We hypothesize that an earlier year of formalizing participation in such conventions and treaties would result in a decrease in harmful environmental activities. We assume that countries who formalize their participation observe the importance of transitioning off of fossil fuels decreasing harmful emissions, and begin their transition sooner than other countries. We check if there exists a relationship between one of the most well-known Climate agreements, The Paris Climate Accord (Paris_Agreement), and a harmful environmental activity mining (mining_value_2017):</p>
 <pre class="r fold-hide"><code>ggplot(data=transform2, mapping = aes(x=Paris_Agreement, y=mining_value_2017)) +
   geom_boxplot(mapping = aes(group = cut_width(Paris_Agreement, 2)),
                color=&quot;mediumorchid4&quot;, fill=&quot;plum3&quot;, alpha=0.4)</code></pre>
@@ -1321,7 +1315,7 @@ ggplot(data=transform2, mapping = aes(x=X2017_GDP_US_Dollars_World_Bank, y=NOx))
 <h2>Training and Test Data</h2>
 <p>The cleaned data is divided into test and training data. The testing data is used to evaluate the performance of the predictive model. Using a seperate set of data forces the model to perform on new values, as if it were predicting observations that had not been recorded. This process simulates what would occur if new observations were trying to be predicted (new countries came into being) or perhaps could be used to predict renewable energy percentages in future years. The test data is used to calculate RMSE and MEA.</p>
 <p>The training data is used to fit the model. The training data is additionally used to calculate bias.</p>
-<p>The test-training data split for this model was decided as <span class="math inline">\(80\%\)</span> training and <span class="math inline">\(20\%\)</span>. Given there are only 195 observations available after the data cleaning process, it is important to have enough data to train a robust model. Assigning <span class="math inline">\(20%\)</span> of the data allows for 39 observations to be in the test set. This is enough that outliers should not seriously impact the results without limiting the training data set size more than necesary. Although not the main reason for the decided split, 39 observations allows for easy graphing of the predictions versus the actual reported value.</p>
+<p>The test-training data split for this model was decided as <span class="math inline">\(80\%\)</span> training and <span class="math inline">\(20\%\)</span>. Given there are only 195 observations available after the data cleaning process, it is important to have enough data to train a robust model. Assigning <span class="math inline">\(20\%\)</span> of the data allows for 39 observations to be in the test set. This is enough that outliers should not seriously impact the results without limiting the training data set size more than necesary. Although not the main reason for the decided split, 39 observations allows for easy graphing of the predictions versus the actual reported value.</p>
 <p>Along with test and training data, there is a need for validation data. The purpose of validation data is to get estimates of the test error while still fitting the model parameters (the test data is reserved for the final model). In this project cross validation (CV) is used where possible. Cross validation is the process of breaking the training data into &quot;folds.&quot; The for the <span class="math inline">\(kth\)</span> fold, the other folds are treated as training data to fit the model, and the <span class="math inline">\(kth\)</span> fold is treated as test data to get the CV error. Generally the reported CV error is the average over the <span class="math inline">\(k\)</span> folds. For example, if 10 fold cross validation is used, then the training data will be split into 10 parts, and will fill be fit 10 times. The CV error for the model will be the average of the 10 test errors. The value of cross validation is that it allows for all the training data to be used in model fitting.</p>
 <p>Below the data is broken into test and training data randomly.</p>
 <pre class="r"><code>## Load the Data from the 02 File
@@ -1337,34 +1331,7 @@ y.train = model_data[train, ]$renewable_percent_2017
 x.test = model_data[-train, ]
 y.test = model_data[-train, ]$renewable_percent_2017</code></pre>
 <p>No stratefication is employed in splitting the test and training data. Stratified samling is a method for sampling randomly while ensuring certain categories of observations are present at specified levels in the training or test data. For example, the training data might be sampled so that there are equal percentages of high and low population countries in the test and training data.</p>
-<p>Stratification can be useful in sampling, but there needs to be some justification for limiting the randomness of the sample. The most obvious choices for potential stratification are the major demographics for countries: population, land area, and GDP. If there were some obvious relationship between renewable percentage and these factors, then it would make sense to make sure the test and training data sets had equal proportions of different bins (since the variables are all continuous) of these variables.</p>
-<pre class="r"><code># Simply Linear Model predicting renewable percent with demographics
-basic_model = lm(renewable_percent_2017 ~ X2017_Population_World_Bank + 
-                   X2017_Land_Area_km_2 + X2017_GDP_US_Dollars_World_Bank, data = model_data)
-summary(basic_model)</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = renewable_percent_2017 ~ X2017_Population_World_Bank + 
-##     X2017_Land_Area_km_2 + X2017_GDP_US_Dollars_World_Bank, data = model_data)
-## 
-## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -0.3331 -0.2732 -0.0830  0.2017  0.6856 
-## 
-## Coefficients:
-##                                   Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)                      3.144e-01  2.408e-02  13.053   &lt;2e-16 ***
-## X2017_Population_World_Bank     -3.990e-11  1.955e-10  -0.204    0.839    
-## X2017_Land_Area_km_2             1.124e-08  1.502e-08   0.748    0.455    
-## X2017_GDP_US_Dollars_World_Bank -1.541e-14  1.714e-14  -0.899    0.370    
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Residual standard error: 0.3142 on 191 degrees of freedom
-## Multiple R-squared:  0.00654,    Adjusted R-squared:  -0.009065 
-## F-statistic: 0.4191 on 3 and 191 DF,  p-value: 0.7395</code></pre>
-<pre class="r"><code>remove(basic_model)</code></pre>
-<p>The above linear model makes clear that there is no obvious relationship between these demographic variables and renewable energy percentage. None of the p-values are remotely close to significance. In the exploratory data analysis section, similar results were shown with the scatter plots between reenwable energy percentage and these variables. Therefore there is no justification for stratifying the samples based on any of these variables.</p>
+<p>Stratification can be useful in sampling, but there needs to be some justification for limiting the randomness of the sample. The most obvious choices for potential stratification are the major demographics for countries: population, land area, and GDP. If there were some obvious relationship between renewable percentage and these factors, then it would make sense to make sure the test and training data sets had equal proportions of different bins (since the variables are all continuous) of these variables. In the exploratory data analysis section, scatter plots between the demographic variables and renewable energy percentage indicated no relationship between them. Therefore there is no justification for stratifying the samples based on any of these variables.</p>
 <pre class="r fold-hide"><code># Histogram of training renewable energy
 y.train.df = data.frame(y = y.train)
 y.train_hist = ggplot(data = y.train.df, aes(x = y)) +
@@ -1399,7 +1366,7 @@ plot_grid(y.train_hist,y.test_hist,ncol = 2)</code></pre>
 </div>
 <div id="model-1-regularized-linear-model" class="section level2">
 <h2>Model 1: Regularized Linear Model</h2>
-<p>One model which we choose to build for our prediction is a linear regression model. Linear regression is one parametric method which we have learned. Since our response variable, renewable_percent_2017, is a quantitative variable, linear regression could be a good model for our data, under the following assumptions: there is a linear relationship between response and the predictors, errors of the model are i.i.d. normal random errors, and all observations follow this model. Since we have a relatively large number of predictors (30) relative to observations (195), the variance of our model may be quite large. Thus, to increase our prediction accuracy, we choose to use regularization methods in order to significantly reduce variance while only slightly increasing bias, leading to an overall decrease in MSE. In other words, regularization prevents overfitting. Regularization methods work by shrinking the coefficients of irrelevant variables for prediction accuracy towards zero. In selecting the most accurate linear regression model, we will preform both ridge regression and lasso regression. The main difference between these two methods is that ridge regularization can shrink estimates close to zero, whereas lasso regularization can shrink estimates to zero.</p>
+<p>The first model considered is a linear regression model. Since our response variable, renewable_percent_2017, is a quantitative variable, linear regression could be a good model for our data, under the following assumptions: there is a linear relationship between response and the predictors, errors of the model are i.i.d. normal random errors, and all observations follow this model. Since we have a relatively large number of predictors (30) relative to observations (195), the variance of our model may be quite large. Thus, to increase our prediction accuracy, we choose to use regularization methods in order to significantly reduce variance while only slightly increasing bias, leading to an overall decrease in MSE. In other words, regularization prevents overfitting. Regularization methods work by shrinking the coefficients of irrelevant variables for prediction accuracy towards zero. In selecting the most accurate linear regression model, we will preform both ridge regression and lasso regression. The main difference between these two methods is that ridge regularization can shrink estimates close to zero, whereas lasso regularization can shrink estimates to zero.</p>
 <p>To create our regularized regression models, we use the function glmnet(). Generally we want to standardize data prior to regularization, but glmnet() automatically scales variables. The function takes the arguments alpha which determines fit, and lambda determines the penalty applied to the norm of the coefficients, resulting in different model coefficients (and in turn models) depending on the lambda parameter specified.</p>
 <p>We begin by subsetting the data to exclude the variables Country_Final and Country_ID_Final, as the values of these variables are means of identifying observations, not values which should influence our model.</p>
 <pre class="r"><code># Subset of Data Excluding first three variables
@@ -1415,8 +1382,9 @@ lambda.list.ridge = 1000*exp(seq(0, log(1e-5), length = 100))
 ridge.mod = glmnet(x.train_r, y.train, alpha=0, lambda = lambda.list.ridge)
 # plot standardized coefficients vs lambda values
 plot(ridge.mod, xvar=&quot;lambda&quot;, label=TRUE)</code></pre>
-<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/initial_ridge_model-1.png" width="768" /> We see that depending on the choice of penalty parameter lambda, coefficients of the ridge regression model are regularized towards zero. Our goal in creating the optimal ridge regression model is to find the optimal value of lambda which produces coefficients which minimize MSE.</p>
-<p>We use cross validation to fold the training set into 10 folds (using k-fold CV function as defined in Homework 2). For each fold of the training data, we preform additional 5-fold CV via the cv.glmnet() to find the optimal value of lambda and resulting MSE for the corresponding validation sets.</p>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/initial_ridge_model-1.png" width="768" /></p>
+<p>We see that depending on the choice of penalty parameter lambda, coefficients of the ridge regression model are regularized towards zero. Our goal in creating the optimal ridge regression model is to find the optimal value of lambda which produces coefficients which minimize MSE.</p>
+<p>We use cross validation to fold the training set into 10 folds (using k-fold CV function as defined in Homework 2 of PSTAT 131/231). For each fold of the training data, we preform additional 5-fold CV via the cv.glmnet() function to find the optimal value of lambda and resulting MSE for the corresponding validation sets.</p>
 <pre class="r fold-hide"><code># Create Model Matrix of the Training Data
 data.train = model.matrix(y.train ~ . , x.train_r)
 
@@ -1485,7 +1453,7 @@ abline(v = log(cv.out.ridge$lambda.min), col=&quot;springgreen4&quot;, lwd=3, lt
 <pre class="r"><code># optimal lambda
 optimal_lam_r2 = cv.out.ridge$lambda.min</code></pre>
 <p>According to 10-fold CV preformed on the entire training set, the optimal value of tuning parameter lambda for our ridge regression model is 0.3831554.</p>
-<p>In order to choose which lambda value to use for our optimal ridge regression model, we fit two ridge regression models to our original training set for both values of lambda. - Fit one is ridge.mod1 with lambda =0.3212959 - Fit two is ridge.mod2 with lambda = 0.3831554</p>
+<p>In order to choose which lambda value to use for our optimal ridge regression model, we fit two ridge regression models to our original training set for both values of lambda. Fit one is ridge.mod1 with lambda =0.3212959 and Fit two is ridge.mod2 with lambda = 0.3831554.</p>
 <pre class="r"><code># fit ridge model 1
 ridge.mod1 = glmnet(x.train_r, y.train, alpha=0, lambda = optimal_lam_r1)
 ridge.train.pred1 = predict(ridge.mod1, s=optimal_lam_r1, newx=as.matrix(x.train_r))
@@ -1555,7 +1523,8 @@ lambda.list.lasso = 2 * exp(seq(0, log(1e-4), length=100))
 lasso.mod &lt;- glmnet(x.train_r, y.train, alpha=1, lambda=lambda.list.lasso)
 # plot standardized coefficients vs lambda values
 plot(lasso.mod, xvar=&quot;lambda&quot;, label=TRUE)</code></pre>
-<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/initial_lasso_model-1.png" width="768" /> We see that as penalty parameter lambda increases, normalized coefficients of the lasso regression model are regularized down towards zero, eventually all becoming zero. Our goal in creating the optimal lasso regression model is to find the optimal value of lambda which produces coefficients that minimize prediction error.</p>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/initial_lasso_model-1.png" width="768" /></p>
+<p>We see that as penalty parameter lambda increases, normalized coefficients of the lasso regression model are regularized down towards zero, eventually all becoming zero. Our goal in creating the optimal lasso regression model is to find the optimal value of lambda which produces coefficients that minimize prediction error.</p>
 <p>Again, we use cross validation to fold the training set into 10 folds as we did for ridge regression. For each fold of the training data, we preform additional 5-fold CV via the cv.glmnet() to find the optimal value of lambda and resulting MSE for the corresponding validation sets.</p>
 <pre class="r fold-hide"><code># design matrix of training data with response variable renewable_percent_2017
 data.train &lt;- model.matrix(y.train ~ . , x.train_r)
@@ -1625,7 +1594,7 @@ abline(v = log(cv.out.lasso$lambda.min), col=&quot;springgreen4&quot;, lwd=3, lt
 <pre class="r"><code># optimal lambda
 optimal_lam_l2 = cv.out.lasso$lambda.min</code></pre>
 <p>The optimal lambda parameter selected for our lasso model by preforming 10-fold CV on our entire training set is 0.0190697.</p>
-<p>In order to choose which tuning parameter lambda to use for our optimal lasso regression model, we fit two lasso models to our original training set for both values of lambda. - Fit one is lasso.mod1 with lambda =0.018467. - Fit two is lasso.mod2 with lambda = 0.0190697.</p>
+<p>In order to choose which tuning parameter lambda to use for our optimal lasso regression model, we fit two lasso models to our original training set for both values of lambda. Fit one is lasso.mod1 with lambda =0.018467.and Fit two is lasso.mod2 with lambda = 0.0190697.</p>
 <pre class="r"><code># fit lasso model 1
 lasso.mod1 = glmnet(x.train_r, y.train, alpha=1, lambda = optimal_lam_l1)
 lasso.train.pred1 = predict(lasso.mod1, s=optimal_lam_l1, newx=as.matrix(x.train_r))
@@ -1685,8 +1654,7 @@ lasso.test.MSE = mean((lasso.test.pred - y.test)^2)</code></pre>
 </div>
 <div id="optimal-regression-model" class="section level4">
 <h4>Optimal Regression Model</h4>
-<p>Now that we have selected two final regression models found via regularization methods, ridge and lasso, we compare the models to choose our optimal linear regression model.</p>
-<p>Compute test mean square errors:</p>
+<p>Now that we have selected two final regression models found via regularization methods, ridge and lasso, we compare the models to choose our optimal linear regression model. Compute test mean square errors:</p>
 <pre class="r"><code># mse for ridge model on test data
 ridge.test.pred = predict(ridge.mod1, s=optimal_lam_r1, newx=as.matrix(x.test_r))
 MSE.r = mean((ridge.test.pred - y.test)^2)
@@ -1703,10 +1671,9 @@ RMSE.l = sqrt(lasso.test.MSE)</code></pre>
 MAE.r = mean(abs(y.test-ridge.test.pred))
 # mean absolute error for lasso model on test data
 MAE.l = mean(abs(y.test-lasso.test.pred))</code></pre>
-<p>Based on our evaluations of different metrics of accuracy, we see that both our final ridge and lasso regression models preform very closely on the test data. Our ridge model preforms slightly better on the test set measured on all metrics of accuracy.</p>
-<p>-Our final ridge model has test errors: MSE 0.0730442, RMSE 0.3056464, and MAE 0.2222525 -Our final lasso model has test errors: MSE 0.0757953, RMSE 0.2753095, and MAE 0.2216202</p>
+<p>Based on our evaluations of different metrics of accuracy, we see that both our final ridge and lasso regression models preform very closely on the test data. Our ridge model preforms slightly better on the test set measured on all metrics of accuracy. Our final ridge model has test errors: MSE 0.0730442, RMSE 0.3056464, and MAE 0.2222525. Our final lasso model has test errors: MSE 0.0757953, RMSE 0.2753095, and MAE 0.2216202</p>
 <p>Since our lasso model uses significantly less predictors in its model (11 compared to 30), and has test MAE almost identical compared to the ridge model, it would be advantageous to use the lasso model in this setting, since we gain interpretability with much loss of accuracy. Thus, our optimal linear regression model chosen via regularization methods is the lasso model.</p>
-<p>Finally, we plot the predictions for our lasso model on the test set versus the actual values in order to visualize how well our model preformed. The code used to produce this plot was created by Callum Weinberg, and slightly altered for our lasso model.</p>
+<p>Finally, we plot the predictions for our lasso model on the test set versus the actual values in order to visualize how well our model preformed.</p>
 <pre class="r fold-hide"><code>lasso.test.pred = predict(lasso.mod1, s=optimal_lam_l1, newx=as.matrix(x.test_r))
 # Create Data Frame with Countries, Predicted Values
 # And Actual Values
@@ -1734,7 +1701,8 @@ ggplot(data = lasso_predict_graph_data, aes(x = observation, label = Country)) +
                      values=c(&#39;Actual&#39;=&#39;black&#39;, &#39;Predicted&#39;=&#39;red&#39;)) +
   theme(legend.title=element_text(size=20), legend.text=element_text(size=14)) +
   theme_minimal()</code></pre>
-<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/lasso_model_prediction_graph-1.png" width="768" /> It is clear that our lasso model struggles to predict renewable energy percentage for countries which have relatively high renewable energy percentages (above 50%) as well as countries with low renewable energy percentages close to zero. Our lasso models' prediction values primarily fall between 10% and 50%, which poses a challenge in prediction since we hope to accurately predict the full range of renewable percentages.</p>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/lasso_model_prediction_graph-1.png" width="768" /></p>
+<p>It is clear that our lasso model struggles to predict renewable energy percentage for countries which have relatively high renewable energy percentages (above 50%) as well as countries with low renewable energy percentages close to zero. Our lasso models' prediction values primarily fall between 10% and 50%, which poses a challenge in prediction since we hope to accurately predict the full range of renewable percentages.</p>
 </div>
 </div>
 <div id="model-2-regularized-beta-regression-model" class="section level2">
@@ -1885,7 +1853,7 @@ summary(beta_model)</code></pre>
 ## Sampler summary:
 ## -
 ## DIC = -319.5839 logLik = 179.1992 pd = 38.8144
-## runtime = 43.404
+## runtime = 44.898
 ## ---
 ## Optimizer summary:
 ## -
@@ -2235,16 +2203,18 @@ remove(pca_regression_output, pcr_regression_pred, pcr_regression_fit,
 </div>
 <div id="model-4-random-forest" class="section level2">
 <h2>Model 4: Random Forest</h2>
-<p>Now, we apply random forests to our data in order to predict renewable_percent_2017. In doing so, we will investigate how the features of our data set influence the renewable energy percentage generated by a Country. Since our response variable, renewable_percent_2017 is a continuous variable, we will build a Random Forest Regression Model. The randomForest package will be used to produce our Random Forest Model. Random Forests are beneficial to use over single decision trees, because they aggregate many deep trees (resulting in lower variance for error), in order to avoiding overfitting which tends to occur for single decision trees. The random forest method creates a plethora of decision trees fit on the training set, with a subset of different predictors used for the trees creating the random forest. The random forest makes predictions by averaging the decisions of the many individual trees which make up the random forest.</p>
+<p>Now, we apply random forests to our data in order to predict renewable_percent_2017. In doing so, we will investigate how the features of our data set influence the renewable energy percentage generated by a Country. Since our response variable, renewable_percent_2017 is a continuous variable, we will build a Random Forest Regression Model. The randomForest package is used to produce our Random Forest Model. Random Forests are beneficial to use over single decision trees, because they aggregate many deep trees (resulting in lower variance for error), in order to avoiding overfitting which tends to occur for single decision trees. The random forest method creates a plethora of decision trees fit on the training set, with a subset of different predictors used for the trees creating the random forest. The random forest makes predictions by averaging the decisions of the many individual trees which make up the random forest.</p>
 <p>To build a random forest of regression trees, the number of predictors that should be considered for each split is <span class="math inline">\(p/3\)</span>, where <span class="math inline">\(p\)</span> is the number of predictors (<span class="math inline">\(p/3\)</span> the argument used to specify regression trees). In our case, the data we use for the random forest has <span class="math inline">\(p=30\)</span> predictors, thus <span class="math inline">\(30/3 = 10\)</span> predictors should be considered for each split of the tree. This parameter is specified in our model by mtry=10. The number of trees grown by randomForest() is specified by the argument ntree (by default for our model ntree=500).</p>
 <pre class="r"><code># Subset of Data Excluding first three variables
 x.train_r = x.train[,4:34]
 x.test_r = x.test[,4:34]
 
+# Fit Preliminary Model
 set.seed(42)
-RF.regression &lt;- randomForest(y.train ~ . , data=x.train_r, mtry=10, importance=TRUE)
+RF.regression = randomForest(y.train ~ . , data=x.train_r, mtry=10, importance=TRUE)
 plot(RF.regression)</code></pre>
-<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/rf_regression-1.png" width="768" /> 500 trees is reasonable (and default) as we see that the MSE of the random forest model is relatively steady near zero after approximately 200 trees.</p>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/rf_regression-1.png" width="768" /></p>
+<p>500 trees is reasonable (and default) as we see that the MSE of the random forest model is relatively steady near zero after approximately 200 trees.</p>
 <p>Although cross-validation is inherently contained in the random forest method itself, we preform 5-fold cv on the training set to show an example of how the number of variables included selected for each tree affects the error of our folded training data.</p>
 <pre class="r"><code># Set Seed for Reproducibility
 set.seed(42)
@@ -2252,8 +2222,9 @@ set.seed(42)
 # https://stackoverflow.com/questions/19760169/how-to-perform-random-forest-cross-validation-in-r
 RF.cv &lt;- rfcv(x.train_r, y.train, cv.fold=5)
 with(RF.cv, plot(n.var, error.cv))</code></pre>
-<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/CV_random_forest-1.png" width="768" /> Cross-validation preformed on the training data reveals that varying the number of predictors selected for each split in our random forest model influences the error of the respective random forest models. The plot confirms that prediction errors should be smallest around 10 predictors used for each split. mtry=10 is the number of predictors which we specify in our random forest model, which signifies regression for random forests.</p>
-<p>We will use our random forest model RF.regression with mtry=10 and ntree=500 as our final random forest model. Look at the order of important variables for our random forest regression model:</p>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/CV_random_forest-1.png" width="768" /></p>
+<p>Cross-validation preformed on the training data reveals that varying the number of predictors selected for each split in our random forest model influences the error of the respective random forest models. The plot confirms that prediction errors should be smallest around 10 predictors used for each split. mtry=10 is the number of predictors which we specify in our random forest model, which signifies regression for random forests.</p>
+<p>We will use our random forest model RF.regression with mtry=10 and ntree=500 as our final random forest model. Looking at the order of important variables for our random forest regression model:</p>
 <pre class="r"><code>importance(RF.regression)</code></pre>
 <pre><code>##                                              %IncMSE IncNodePurity
 ## X2017_Population_World_Bank                6.6443140     0.5526783
@@ -2288,7 +2259,8 @@ with(RF.cv, plot(n.var, error.cv))</code></pre>
 ## UN_Framework_Convention_on_Climate_Change -0.9857026     0.1403497
 ## World__Heritage_Convention                 1.8346096     0.4077670</code></pre>
 <pre class="r"><code>varImpPlot(RF.regression, n.var=20)</code></pre>
-<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/rf_regression_importance-1.png" width="960" /> Based on the plot of the importance of variables in our random forests decision making, we note that forest_area_2015, CO2, protected_areas_marine_terrestrial, and NOx are among the top most important variables. This is decided because when these predictors are not included in decision trees, MSE is increased by over 6%. This points to emissions variables and land varibales being the most important predictors</p>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/rf_regression_importance-1.png" width="960" /></p>
+<p>Based on the plot of the importance of variables in our random forests decision making, we note that forest_area_2015, CO2, protected_areas_marine_terrestrial, and NOx are among the top most important variables. This is decided because when these predictors are not included in decision trees, MSE is increased by over 6%. This points to emissions variables and land varibales being the most important predictors</p>
 <p>Our random forest model is fit to both training and test sets in order to calculate the error of their predictions.</p>
 <pre class="r"><code># training MSE
 RF.train.pred = predict(RF.regression, newdata=x.train_r)
@@ -2298,8 +2270,8 @@ RF.test.pred = predict(RF.regression, newdata=x.test_r)
 RF.test.MSE = mean((RF.test.pred - y.test)^2)</code></pre>
 <p>Thus, our random forest regression model is has training MSE 0.0150508, and test MSE 0.0667791. Thus, our random forest regression model is better fit to the training data than the test data. Both training and test MSE are relatively close to zero, which means that the model has some prediction accuracy on the test set.</p>
 <p>We now calculate different metrics of accuracy in order to compare our random forest regression model's performance with other models considered throughout the report.</p>
-<p>Compute and compare test MSE, RMSE, and MAE:</p>
-<pre class="r"><code># test mse for RF model on test data
+<pre class="r"><code># Compute and compare test MSE, RMSE, and MAE:
+# test mse for RF model on test data
 RF.test.pred = predict(RF.regression, newdata=x.test_r)
 RF.test.MSE = mean((RF.test.pred - y.test)^2)
 # test root mse 
@@ -2307,95 +2279,15 @@ RF.test.RMSE = sqrt(RF.test.MSE)
 # mean absolute error for RF on test data
 RF.MAE = mean(abs(y.test-RF.test.pred))</code></pre>
 <p>The resulting test errors made by our RF model are: MSE = 0.0667791 , RMSE = 0.2584166 , and MAE = 0.2038318.</p>
-<p>The mean absolute error of our random forest regression model is 0.2038318 which is an okay mean absolute error. This type of model does not seem to be ideal for our prediction needs, but it may be able to predict with some accuracy.</p>
-<p>Finally, we plot the predictions for our random forest model on the test set versus the actual values in order to visualize how well our model preformed. The code used to produce this plot was created by Callum Weinberg, and slightly altered for our random forest model.</p>
+<p>The mean absolute error of our random forest regression model is 0.2038318 which is an relativey okay mean absolute error, but mediocre in an absolute sense, as is discussed in the results section.</p>
+<p>Finally, we plot the predictions for our random forest model on the test set versus the actual values in order to visualize how well our model preformed.</p>
 <pre class="r fold-hide"><code>set.seed(42)
 RF.test.pred = as.matrix(predict(RF.regression, newdata=x.test_r))
-RF.test.pred</code></pre>
-<pre><code>##           [,1]
-## 7   0.43671954
-## 8   0.31212260
-## 10  0.19849469
-## 11  0.25694893
-## 17  0.28784134
-## 19  0.34474830
-## 39  0.17411736
-## 44  0.31880355
-## 45  0.23910922
-## 50  0.06672815
-## 51  0.33941840
-## 52  0.41735344
-## 56  0.25906788
-## 59  0.30835020
-## 61  0.22392221
-## 64  0.10990062
-## 67  0.39348769
-## 70  0.26732189
-## 77  0.41592534
-## 84  0.31067505
-## 86  0.27463862
-## 96  0.44025813
-## 98  0.22850371
-## 106 0.22035943
-## 108 0.32458841
-## 112 0.24358935
-## 119 0.41152966
-## 124 0.31668085
-## 132 0.18040254
-## 133 0.26853444
-## 137 0.47072750
-## 141 0.18285576
-## 144 0.27767899
-## 151 0.16302152
-## 156 0.33843312
-## 173 0.27293294
-## 176 0.14038910
-## 189 0.23975683
-## 192 0.19450019</code></pre>
-<pre class="r fold-hide"><code># Create Data Frame with Countries, Predicted Values
+#RF.test.pred
+# Create Data Frame with Countries, Predicted Values
 # And Actual Values
-RF.test.pred</code></pre>
-<pre><code>##           [,1]
-## 7   0.43671954
-## 8   0.31212260
-## 10  0.19849469
-## 11  0.25694893
-## 17  0.28784134
-## 19  0.34474830
-## 39  0.17411736
-## 44  0.31880355
-## 45  0.23910922
-## 50  0.06672815
-## 51  0.33941840
-## 52  0.41735344
-## 56  0.25906788
-## 59  0.30835020
-## 61  0.22392221
-## 64  0.10990062
-## 67  0.39348769
-## 70  0.26732189
-## 77  0.41592534
-## 84  0.31067505
-## 86  0.27463862
-## 96  0.44025813
-## 98  0.22850371
-## 106 0.22035943
-## 108 0.32458841
-## 112 0.24358935
-## 119 0.41152966
-## 124 0.31668085
-## 132 0.18040254
-## 133 0.26853444
-## 137 0.47072750
-## 141 0.18285576
-## 144 0.27767899
-## 151 0.16302152
-## 156 0.33843312
-## 173 0.27293294
-## 176 0.14038910
-## 189 0.23975683
-## 192 0.19450019</code></pre>
-<pre class="r fold-hide"><code>RF_predict_graph_data = data.frame(observation = c(1:39),
+#RF.test.pred
+RF_predict_graph_data = data.frame(observation = c(1:39),
                                       V1 = RF.test.pred,
                                       actual = y.test,
                                       Country = x.test$Country_Final)
@@ -2420,7 +2312,8 @@ random_forest_prediction_plot = ggplot(data = RF_predict_graph_data, aes(x = obs
   theme(legend.title=element_text(size=20), legend.text=element_text(size=14)) +
   theme_minimal()
 random_forest_prediction_plot</code></pre>
-<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/rf_model_prediction_graph-1.png" width="768" /> Our random forest regression model has difficulty predicting renewable energy percentage for countries which have relatively high renewable energy percentages (above 50%), but is sightly better at predicting countries with low renewable energy percentages close to zero. Our random forest model only predicts values renewable energy percenteges under 50%, this raises concerns about using a random forest model to best predict our data. It may be difficult to predict high renewable energy percentages due to fewer observations of high renewable energy percentage countries in our model data (skewed distribution).</p>
+<p><img src="Final_Project_html_Broderick_Weinberg_files/figure-html/rf_model_prediction_graph-1.png" width="768" /></p>
+<p>Our random forest regression model has difficulty predicting renewable energy percentage for countries which have relatively high renewable energy percentages (above 50%), but is sightly better at predicting countries with low renewable energy percentages close to zero. Our random forest model only predicts values renewable energy percenteges under 50%, this raises concerns about using a random forest model to best predict our data. It may be difficult to predict high renewable energy percentages due to fewer observations of high renewable energy percentage countries in our model data (skewed distribution).</p>
 </div>
 <div id="model-5-boosted-trees" class="section level2">
 <h2>Model 5: Boosted Trees</h2>
